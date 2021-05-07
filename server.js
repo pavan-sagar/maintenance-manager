@@ -1,28 +1,23 @@
 const express = require("express");
 const app = express();
-
 const cors = require("cors");
-
 const mongoose = require("mongoose");
 require("dotenv").config();
+const passport = require("passport");
+const session = require("express-session");
 
 mongoose.set("debug", true);
 
 //Connect to DB
-
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
 app.use(cors());
-
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-
 app.use(express.static("public"));
-
-//APIS here
 
 //Users collection schema
 let usersSchema = new mongoose.Schema(
@@ -42,24 +37,59 @@ let usersSchema = new mongoose.Schema(
 //Users model
 let users = mongoose.model("users", usersSchema);
 
-//Check if user is registered and password is correct
-app.post("/login", (req, res) => {
-  users.findOne({ email: req.body.email }, (err, user) => {
-    if (err) res.send("An error has occured");
-    if (user) {
-      users.findOne({ password: req.body.password }, (err, password) => {
-        if (err) console.log(err);
-        if (password) {
-          res.send("You have successfully been authenticated!!!");
-        } else {
-          res.send("Incorrect Password");
-        }
-      });
-    } else {
-      res.send("Wrong email. Please provide correct email id");
+const initializePassport = require("./passport-config");
+initializePassport(passport, users);
+
+app.use(
+  session({
+    secret: "cool cat",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+//APIS here
+
+app.all("/login", checkNotAuthenticated, function (req, res, next) {
+  passport.authenticate("local", function (err, user, info) {
+    if (err) {
+      return next(err);
     }
-  });
+    if (!user) {
+      return res.send(info);
+    }
+
+    req.logIn(user, function (err) {
+      if (err) {
+        return next(err);
+      }
+      return res.send({ message: "Success", userInfo: user.email });
+    });
+  })(req, res, next);
 });
+
+app.get("/userInfo", (req, res) => {
+  res.send("Welcome tester");
+});
+
+function checkAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+
+    return next();
+  }
+
+  res.redirect("/login");
+}
+
+function checkNotAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return res.redirect("/profile");
+  }
+  next();
+}
 
 // Not found middleware
 app.use((req, res, next) => {
@@ -84,6 +114,7 @@ app.use((err, req, res, next) => {
   res.status(errCode).type("txt").send(errMessage);
 });
 
-const listener = app.listen(process.env.PORT || 3001, () => {
+const listener = app.listen(process.env.PORT || 3002, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
+
