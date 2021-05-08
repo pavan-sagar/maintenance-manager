@@ -4,9 +4,7 @@ const bcrypt = require("bcrypt");
 function initialize(passport, users) {
   const authenticateUser = (email, password, done) => {
     users.findOne({ email }, async (err, user) => {
-      // const hashedPassword = await bcrypt.hash(password, 10)
-
-      // console.log("in passport config>>>",hashedPassword)
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       if (user == null) {
         return done(null, false, { message: "No user with that email" });
@@ -27,7 +25,6 @@ function initialize(passport, users) {
   const getUserById = async (id) => {
     await users.findById(id, (err, user) => {
       if (user) {
-        console.log("user found", user);
         return user;
       } else {
         return null;

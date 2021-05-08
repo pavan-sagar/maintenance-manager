@@ -13,16 +13,18 @@ export default function login() {
   const authSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await axios.post(`${serverPath}/login`, {
+    const response = await axios.post('http://localhost:3001/login', {
       email,
       password,
-    });
+    },{withCredentials:true});
 
-    if (response.data.message.toLowerCase().includes("success")) {
-      router.push("/profile");
-    } else {
-      setLogInError(response.data.message);
-    }
+
+
+    // if (response.data.message.toLowerCase().includes("success")) {
+    //   router.push("/profile");
+    // } else {
+    //   setLogInError(response.data.message);
+    // }
   };
 
   return (

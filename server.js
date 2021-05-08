@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const passport = require("passport");
 const session = require("express-session");
+const cookieSession = require("cookie-session");
 
 mongoose.set("debug", true);
 
@@ -14,7 +15,7 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 });
 
-app.use(cors());
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static("public"));
@@ -53,7 +54,7 @@ app.use(passport.session());
 
 //APIS here
 
-app.all("/login", checkNotAuthenticated, function (req, res, next) {
+app.post("/login", checkNotAuthenticated, function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       return next(err);
@@ -71,13 +72,8 @@ app.all("/login", checkNotAuthenticated, function (req, res, next) {
   })(req, res, next);
 });
 
-app.get("/userInfo", (req, res) => {
-  res.send("Welcome tester");
-});
-
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-
     return next();
   }
 
@@ -86,7 +82,7 @@ function checkAuthenticated(req, res, next) {
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return res.redirect("/profile");
+    return res.send("Already authenticated");
   }
   next();
 }
@@ -114,7 +110,6 @@ app.use((err, req, res, next) => {
   res.status(errCode).type("txt").send(errMessage);
 });
 
-const listener = app.listen(process.env.PORT || 3002, () => {
+const listener = app.listen(process.env.PORT || 3001, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
-
