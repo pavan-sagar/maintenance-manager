@@ -1,5 +1,4 @@
 import React from "react";
-import axios from "axios";
 
 export default function profile() {
   return <div>Welcome User</div>;

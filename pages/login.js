@@ -1,34 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { connect, useSelector, shallowEqual } from "react-redux";
 import { useRouter } from "next/router";
-import axios from "axios";
-import serverPath  from '../serverPath'
+import { authenticateUser } from "../actions";
+import { axios } from "../config";
+import { initializeStore } from "../store";
 
-export default function login() {
+export function login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [logInError, setLogInError] = useState("");
+
+  useEffect(() => {
+    if (props.authErr) {
+      setLogInError(props.authErr);
+    }
+
+    if (props.userId) {
+      router.push("/profile");
+    }
+  }, [props.authErr]);
 
   const router = useRouter();
 
   const authSubmit = async (e) => {
     e.preventDefault();
 
-    const response = await axios.post('http://localhost:3001/login', {
+    const { data } = await axios.post("/login", {
       email,
       password,
-    },{withCredentials:true});
+    });
 
+    if (data.message.toLowerCase().includes("success")) {
+      props.authenticateUser("SIGN_IN", data.userInfo);
+    } else {
+      props.authenticateUser("AUTH_ERR", data.message);
+    }
 
+    console.log("PROPSzzzz", props);
 
-    // if (response.data.message.toLowerCase().includes("success")) {
-    //   router.push("/profile");
+    // if (props.authErr) {
+    //   setLogInError(props.authErr);
+    // }
     // } else {
-    //   setLogInError(response.data.message);
+    //   router.push("/profile");
     // }
   };
 
   return (
     <div className="relative inline-block md:w-1/4  px-2  mt-[3rem]">
+      {console.log("PROPS", props)}
       <form
         onSubmit={authSubmit}
         // method="post"
@@ -74,3 +94,14 @@ export default function login() {
     </div>
   );
 }
+
+const mapStateToProps = (state, ownProps) => {
+  console.log("state", state);
+
+  return {
+    authErr: state.auth.authErr,
+    userId: state.auth.userId,
+  };
+};
+
+export default connect(mapStateToProps, { authenticateUser })(login);

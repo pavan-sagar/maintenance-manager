@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const passport = require("passport");
 const session = require("express-session");
-const cookieSession = require("cookie-session");
 
 mongoose.set("debug", true);
 
@@ -54,7 +53,7 @@ app.use(passport.session());
 
 //APIS here
 
-app.post("/login", checkNotAuthenticated, function (req, res, next) {
+app.all("/api/login", function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       return next(err);
