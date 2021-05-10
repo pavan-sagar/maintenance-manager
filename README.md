@@ -10,7 +10,7 @@ Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_mediu
 
 ## How to use
 
-1. Clone the repository with git clone 
-2. Install dependencies with command npm install
-3. Run the dev server with command : npm run dev
+1. Clone the repository --> git clone 
+2. Install dependencies --> npm install
+3. Run the dev server --> npm run dev
 
