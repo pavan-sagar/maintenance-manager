@@ -16,9 +16,10 @@ export function login(props) {
     }
 
     if (props.userId) {
+      
       router.push("/profile");
     }
-  }, [props.authErr]);
+  }, [props.authErr,props.userId]);
 
   const router = useRouter();
 
