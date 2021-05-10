@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import { useRouter } from "next/router";
-import { authenticateUser } from "../actions";
+import { SIGN_IN, AUTH_ERR, authenticateUser } from "../slices/authenticateSlice";
 import { axios } from "../config";
-import { SIGN_IN, AUTH_ERR } from "../actions/types";
 
 export function Login(props) {
   const [email, setEmail] = useState("");
@@ -24,19 +23,10 @@ export function Login(props) {
   }, [props.authErr, props.userId]);
 
   //Authenticate user on submitting credentials
-  const authSubmit = async (e) => {
+  const authSubmit = (e) => {
     e.preventDefault();
 
-    const { data } = await axios.post("/login", {
-      email,
-      password,
-    });
-
-    if (data.message.toLowerCase().includes("success")) {
-      props.authenticateUser(SIGN_IN, data.userInfo);
-    } else {
-      props.authenticateUser(AUTH_ERR, data.message);
-    }
+    props.authenticateUser(email, password);
   };
 
   return (
@@ -84,9 +74,13 @@ export function Login(props) {
 
 const mapStateToProps = (state, ownProps) => {
   return {
-    authErr: state.auth.authErr,
-    userId: state.auth.userId,
+    authErr: state.authenticate.authErr,
+    userId: state.authenticate.userId,
   };
 };
 
-export default connect(mapStateToProps, { authenticateUser })(Login);
+export default connect(mapStateToProps, {
+  SIGN_IN,
+  AUTH_ERR,
+  authenticateUser,
+})(Login);
