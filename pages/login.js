@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { connect, useSelector, shallowEqual } from "react-redux";
+import { connect } from "react-redux";
 import { useRouter } from "next/router";
 import { authenticateUser } from "../actions";
 import { axios } from "../config";
+import { SIGN_IN, AUTH_ERR } from "../actions/types";
 
 export function Login(props) {
   const [email, setEmail] = useState("");
@@ -32,9 +33,9 @@ export function Login(props) {
     });
 
     if (data.message.toLowerCase().includes("success")) {
-      props.authenticateUser("SIGN_IN", data.userInfo);
+      props.authenticateUser(SIGN_IN, data.userInfo);
     } else {
-      props.authenticateUser("AUTH_ERR", data.message);
+      props.authenticateUser(AUTH_ERR, data.message);
     }
   };
 
@@ -85,7 +86,6 @@ const mapStateToProps = (state, ownProps) => {
   return {
     authErr: state.auth.authErr,
     userId: state.auth.userId,
-    testStatus: state.auth.testSync,
   };
 };
 

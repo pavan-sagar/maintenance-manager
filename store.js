@@ -11,7 +11,6 @@ export const initialState = {
     isSignedIn: null,
     userId: null,
     authErr: null,
-    testSync: null,
   },
 };
 
