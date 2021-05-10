@@ -2,10 +2,18 @@ import { SIGN_IN, SIGN_OUT, AUTH_ERR } from "./types";
 import { axios } from "../config";
 
 export const authenticateUser = (type, payload) => {
-  console.log(type,payload)
+  console.log(type, payload);
   return {
-    type:type,
-    payload:payload,
+    type: type,
+    payload: payload,
+  };
+  
+};
+
+export const sendTestSync = (payload) => {
+  return {
+    type: "TEST_SYNC",
+    payload,
   };
 };
 

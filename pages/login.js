@@ -3,26 +3,26 @@ import { connect, useSelector, shallowEqual } from "react-redux";
 import { useRouter } from "next/router";
 import { authenticateUser } from "../actions";
 import { axios } from "../config";
-import { initializeStore } from "../store";
 
-export function login(props) {
+export function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [logInError, setLogInError] = useState("");
 
+  const router = useRouter();
+
+  //Show authentication error or send to profile is logged in
   useEffect(() => {
     if (props.authErr) {
       setLogInError(props.authErr);
     }
 
     if (props.userId) {
-      
       router.push("/profile");
     }
-  }, [props.authErr,props.userId]);
+  }, [props.authErr, props.userId]);
 
-  const router = useRouter();
-
+  //Authenticate user on submitting credentials
   const authSubmit = async (e) => {
     e.preventDefault();
 
@@ -36,26 +36,11 @@ export function login(props) {
     } else {
       props.authenticateUser("AUTH_ERR", data.message);
     }
-
-    console.log("PROPSzzzz", props);
-
-    // if (props.authErr) {
-    //   setLogInError(props.authErr);
-    // }
-    // } else {
-    //   router.push("/profile");
-    // }
   };
 
   return (
     <div className="relative inline-block md:w-1/4  px-2  mt-[3rem]">
-      {console.log("PROPS", props)}
-      <form
-        onSubmit={authSubmit}
-        // method="post"
-        // action="/api/login"
-        className="flex flex-col"
-      >
+      <form onSubmit={authSubmit} className="flex flex-col">
         <div className="flex justify-between">
           <label htmlFor="email" className="">
             Email address
@@ -97,12 +82,11 @@ export function login(props) {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  console.log("state", state);
-
   return {
     authErr: state.auth.authErr,
     userId: state.auth.userId,
+    testStatus: state.auth.testSync,
   };
 };
 
-export default connect(mapStateToProps, { authenticateUser })(login);
+export default connect(mapStateToProps, { authenticateUser })(Login);
