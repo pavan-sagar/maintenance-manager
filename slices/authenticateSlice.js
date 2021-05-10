@@ -1,14 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { axios } from "../config";
 
-
 const initialState = {
   isSignedIn: null,
   userId: null,
   authErr: null,
 };
 
-export const counterSlice = createSlice({
+export const authenticateSlice = createSlice({
   name: "authenticate",
   initialState,
   reducers: {
@@ -22,7 +21,7 @@ export const counterSlice = createSlice({
       state.authErr = null;
     },
     SIGN_OUT: (state) => {
-      (state.isSignedIn = 'nope'), (state.userId = 'go away'), (state.authErr = null);
+      (state.isSignedIn = false), (state.userId = null), (state.authErr = null);
     },
     // Use the PayloadAction type to declare the contents of `action.payload`
     AUTH_ERR: (state, action) => {
@@ -31,7 +30,7 @@ export const counterSlice = createSlice({
   },
 });
 
-export const { SIGN_IN, SIGN_OUT, AUTH_ERR } = counterSlice.actions;
+export const { SIGN_IN, SIGN_OUT, AUTH_ERR } = authenticateSlice.actions;
 
 // The function below is called a thunk and allows us to perform async logic. It
 // can be dispatched like a regular action: `dispatch(incrementAsync(10))`. This
@@ -43,20 +42,17 @@ export const { SIGN_IN, SIGN_OUT, AUTH_ERR } = counterSlice.actions;
 //   }, 1000);
 // };
 
-export const authenticateUser = (email, password) => async dispatch => {
-  
-
+export const authenticateUser = (email, password) => async (dispatch) => {
   const { data } = await axios.post("/login", {
     email,
     password,
   });
 
   if (data.message.toLowerCase().includes("success")) {
-    dispatch(SIGN_IN(data.userInfo))
+    dispatch(SIGN_IN(data.userInfo));
   } else {
-    dispatch(AUTH_ERR(data.message))
+    dispatch(AUTH_ERR(data.message));
   }
-
 };
 
 // The function below is called a selector and allows us to select a value from
@@ -64,4 +60,4 @@ export const authenticateUser = (email, password) => async dispatch => {
 // in the slice file. For example: `useSelector((state: RootState) => state.counter.value)`
 // export const selectCount = (state) => state.counter.value;
 
-export default counterSlice.reducer;
+export default authenticateSlice.reducer;

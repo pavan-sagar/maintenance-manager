@@ -6,6 +6,3 @@ export const store = configureStore({
     authenticate: authenticateReducer,
   },
 });
-
-
-

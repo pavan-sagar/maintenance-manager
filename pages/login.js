@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 import { useRouter } from "next/router";
-import { SIGN_IN, AUTH_ERR, authenticateUser } from "../slices/authenticateSlice";
+import { authenticateUser } from "../slices/authenticateSlice";
 import { axios } from "../config";
 
 export function Login(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [logInError, setLogInError] = useState("");
-
   const router = useRouter();
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await axios.get("/login");
+
+      if (data.message.toLowerCase().includes("already authenticated")) {
+        router.push("/profile");
+      }
+    })();
+  }, []);
 
   //Show authentication error or send to profile is logged in
   useEffect(() => {
@@ -72,7 +81,7 @@ export function Login(props) {
   );
 }
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
   return {
     authErr: state.authenticate.authErr,
     userId: state.authenticate.userId,
@@ -80,7 +89,27 @@ const mapStateToProps = (state, ownProps) => {
 };
 
 export default connect(mapStateToProps, {
-  SIGN_IN,
-  AUTH_ERR,
   authenticateUser,
 })(Login);
+
+//Enable below in prod built and try (Comment the first useEffect)
+
+// export async function getServerSideProps(context) {
+//   const { data } = await axios.get("/login");
+
+//   console.log(data)
+//   if (data.message.toLowerCase().includes("already authenticated")) {
+//     return {
+//       redirect: {
+//         destination: "/profile",
+//         permanent: false,
+//       },
+//     };
+//   }
+
+//   return {
+//     props: {
+
+//     }, // will be passed to the page component as props
+//   };
+// }

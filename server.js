@@ -53,7 +53,7 @@ app.use(passport.session());
 
 //APIS here
 
-app.all("/api/login", function (req, res, next) {
+app.all("/api/login", checkNotAuthenticated,function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       return next(err);
@@ -81,9 +81,9 @@ function checkAuthenticated(req, res, next) {
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return res.send("Already authenticated");
+    return res.send({message:"Already authenticated"});
   }
-  next();
+  return next();
 }
 
 // Not found middleware
