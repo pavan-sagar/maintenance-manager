@@ -8,6 +8,7 @@ import { initialState } from "../store";
 export default function MyApp({ Component, pageProps }) {
   return (
     <Provider store={store}>
+
       <Navbar />
       <Component {...pageProps} />
     </Provider>

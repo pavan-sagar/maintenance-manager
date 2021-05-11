@@ -53,7 +53,7 @@ app.use(passport.session());
 
 //APIS here
 
-app.all("/api/login", checkNotAuthenticated,function (req, res, next) {
+app.all("/api/login", checkNotAuthenticated, function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       return next(err);
@@ -71,17 +71,22 @@ app.all("/api/login", checkNotAuthenticated,function (req, res, next) {
   })(req, res, next);
 });
 
+app.get("/api/signout", checkAuthenticated, (req, res) => {
+  req.logOut();
+  res.send({ message: "logged out" });
+});
+
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
 
-  res.redirect("/login");
+  res.send({ message: "please log in" });
 }
 
 function checkNotAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return res.send({message:"Already authenticated"});
+    return res.send({ message: "Already authenticated" });
   }
   return next();
 }

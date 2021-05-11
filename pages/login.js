@@ -56,7 +56,7 @@ export function Login(props) {
         </div>
         <br />
         <div className="flex justify-between">
-          <label htmlfor="password" className="t">
+          <label htmlFor="password" className="t">
             Password
           </label>
           <input
