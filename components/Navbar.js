@@ -2,7 +2,6 @@ import Link from "next/link";
 import { connect } from "react-redux";
 
 import Signout from "./Signout";
-import { SIGN_OUT } from "../slices/authenticateSlice";
 
 function Navbar(props) {
   return (
@@ -13,7 +12,7 @@ function Navbar(props) {
             <Link href="/">Maintenance Manager</Link>
           </li>
           <li style={{ display: "inline-block", marginLeft: "auto" }}>
-            <Signout />
+            {props.isSignedIn && <Signout />}
           </li>
         </ul>
       </nav>
@@ -21,4 +20,8 @@ function Navbar(props) {
   );
 }
 
-export default connect(null, { SIGN_OUT })(Navbar);
+const mapStateToProps = (state) => ({
+  isSignedIn: state.authenticate.isSignedIn,
+});
+
+export default connect(mapStateToProps, null)(Navbar);
