@@ -11,9 +11,7 @@ function Navbar(props) {
           <li className="inline-block">
             <Link href="/">Maintenance Manager</Link>
           </li>
-          <li style={{ display: "inline-block", marginLeft: "auto" }}>
-            {props.isSignedIn && <Signout />}
-          </li>
+          <li className="ml-auto">{props.isSignedIn && <Signout />}</li>
         </ul>
       </nav>
     </header>

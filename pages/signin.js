@@ -4,15 +4,15 @@ import { useRouter } from "next/router";
 import { authenticateUser } from "../slices/authenticateSlice";
 import { axios } from "../config";
 
-export function Login(props) {
+export function Signin(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [logInError, setLogInError] = useState("");
+  const [signInError, setSignInError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     (async () => {
-      const { data } = await axios.get("/login");
+      const { data } = await axios.get("/signin");
 
       if (data.message.toLowerCase().includes("already authenticated")) {
         router.push("/profile");
@@ -23,7 +23,7 @@ export function Login(props) {
   //Show authentication error or send to profile is logged in
   useEffect(() => {
     if (props.authErr) {
-      setLogInError(props.authErr);
+      setSignInError(props.authErr);
     }
 
     if (props.userId) {
@@ -69,7 +69,7 @@ export function Login(props) {
           />
         </div>
         <br />
-        <p>{logInError}</p>
+        <span className="text-red-600">{signInError}</span>
         <button
           type="submit"
           className="bg-blue-300 w-2/4 md mt-[1rem] self-end hover:bg-blue-400 px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
@@ -90,7 +90,7 @@ const mapStateToProps = (state) => {
 
 export default connect(mapStateToProps, {
   authenticateUser,
-})(Login);
+})(Signin);
 
 //Enable below in prod built and try (Comment the first useEffect)
 

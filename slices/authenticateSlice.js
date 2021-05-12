@@ -43,7 +43,7 @@ export const { SIGN_IN, SIGN_OUT, AUTH_ERR } = authenticateSlice.actions;
 // };
 
 export const authenticateUser = (email, password) => async (dispatch) => {
-  const { data } = await axios.post("/login", {
+  const { data } = await axios.post("/signin", {
     email,
     password,
   });

@@ -14,13 +14,18 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 });
 
-app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: ["http://localhost:3000", "http://localhost:3001"],
+  })
+);
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static("public"));
 
 //Users collection schema
-let usersSchema = new mongoose.Schema(
+let residentsSchema = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -31,14 +36,40 @@ let usersSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { collection: "users" }
+  { collection: "residents" }
 );
 
-//Users model
-let users = mongoose.model("users", usersSchema);
+//Societies collection scheme
+
+let societiesSchema = new mongoose.Schema({
+  adminEmail: {
+    type: String,
+    required: true,
+  },
+
+  name: {
+    type: String,
+    required: true,
+  },
+
+  wings: {
+    type: [String],
+    required: true,
+  },
+  pincode: {
+    type: Number,
+    required: true,
+  },
+});
+
+//Residents model
+let residents = mongoose.model("residents", residentsSchema);
+
+//Societies model
+let societies = mongoose.model("societies", societiesSchema);
 
 const initializePassport = require("./passport-config");
-initializePassport(passport, users);
+initializePassport(passport, residents);
 
 app.use(
   session({
@@ -53,7 +84,8 @@ app.use(passport.session());
 
 //APIS here
 
-app.all("/api/login", checkNotAuthenticated, function (req, res, next) {
+//Authenticate
+app.all("/api/signin", checkNotAuthenticated, function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
       return next(err);
@@ -71,11 +103,13 @@ app.all("/api/login", checkNotAuthenticated, function (req, res, next) {
   })(req, res, next);
 });
 
+//Sign Out
 app.get("/api/signout", checkAuthenticated, (req, res) => {
   req.logOut();
   res.send({ message: "logged out" });
 });
 
+//Check authentication status
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
@@ -90,6 +124,14 @@ function checkNotAuthenticated(req, res, next) {
   }
   return next();
 }
+
+//GET societies
+app.get("/api/get/societies", (req, res) => {
+  societies.find(null, "name wings area pincode", (err, societies) => {
+    if (err) res.send(err);
+    res.send(societies);
+  });
+});
 
 // Not found middleware
 app.use((req, res, next) => {

@@ -15,7 +15,7 @@ export const SignOut = (props) => {
   };
 
   return (
-    <a onClick={logOut} href="#">
+    <a onClick={logOut} href="#" className="hover:text-[#EE5D36]">
       Sign Out
     </a>
   );
