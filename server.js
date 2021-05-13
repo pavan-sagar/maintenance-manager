@@ -27,6 +27,27 @@ app.use(express.static("public"));
 //Users collection schema
 let residentsSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: true,
+    },
+    societyName: {
+      type: String,
+      required: true,
+    },
+    wing: {
+      type: String,
+      required: true,
+    },
+    area: {
+      type: String,
+      required: true,
+    },
+    pincode: {
+      type: Number,
+      required: true,
+    },
+
     email: {
       type: String,
       required: true,
@@ -130,6 +151,15 @@ app.get("/api/get/societies", (req, res) => {
   societies.find(null, "name wings area pincode", (err, societies) => {
     if (err) res.send(err);
     res.send(societies);
+  });
+});
+
+//ADD resident / New resident registration
+app.post("/api/add/resident", (req, res) => {
+  residents.create(req.body, (err, resident) => {
+    if (resident) {
+      res.status(200).send("Resident created successfully");
+    }
   });
 });
 

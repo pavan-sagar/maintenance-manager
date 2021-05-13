@@ -10,6 +10,8 @@ export function Signin(props) {
   const [signInError, setSignInError] = useState("");
   const router = useRouter();
 
+
+  //Redirect user to profile is already logged in
   useEffect(() => {
     (async () => {
       const { data } = await axios.get("/signin");
@@ -39,44 +41,49 @@ export function Signin(props) {
   };
 
   return (
-    <div className="relative inline-block md:w-1/4  px-2  mt-[3rem]">
-      <form onSubmit={authSubmit} className="flex flex-col">
-        <div className="flex justify-between">
-          <label htmlFor="email" className="">
-            Email address
-          </label>
-          <input
-            className="border-2"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <br />
-        <div className="flex justify-between">
-          <label htmlFor="password" className="t">
-            Password
-          </label>
-          <input
-            className="border-2"
-            type="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <br />
-        <span className="text-red-600">{signInError}</span>
+    <div className="flex justify-center relative w-screen  px-2  mt-[3rem]">
+      <form
+        onSubmit={authSubmit}
+        className="grid grid-cols-2 grid-rows-3 gap-y-1"
+      >
+        <label htmlFor="email" className="">
+          Email address
+        </label>
+        <input
+          className="border-2"
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <label htmlFor="password" className="t">
+          Password
+        </label>
+        <input
+          className="border-2"
+          type="password"
+          name="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {/* <span className="text-red-600">{signInError}</span> */}
         <button
           type="submit"
-          className="bg-blue-300 w-2/4 md mt-[1rem] self-end hover:bg-blue-400 px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+          className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
         >
           Submit
         </button>
       </form>
+
+      <style jsx>
+        {`
+          input {
+            height: 2rem;
+          }
+        `}
+      </style>
     </div>
   );
 }

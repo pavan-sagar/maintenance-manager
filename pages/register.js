@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { axios } from "../config";
+import Router from "next/router";
 
 export default function Register(props) {
   const [firstName, setFirstName] = useState("");
@@ -11,6 +12,7 @@ export default function Register(props) {
   const [pincode, setPincode] = useState();
   const [area, setArea] = useState();
   const [wing, setWing] = useState();
+  const [validationErr, setValidationErr] = useState();
 
   const getSocietyNames = () => {
     return props.societies.map((society) => (
@@ -20,9 +22,9 @@ export default function Register(props) {
 
   const getPincodes = () => {
     if (societyName) {
-      const pincodes = [
-        props.societies.find((society) => society.name === societyName),
-      ];
+      const pincodes = props.societies.filter(
+        (society) => society.name === societyName
+      );
       return pincodes.map(({ pincode }) => (
         <option value={pincode}>{pincode}</option>
       ));
@@ -51,17 +53,45 @@ export default function Register(props) {
     }
   };
 
+  const onFormSubmit = async (e) => {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      setValidationErr("Passwords do not match");
+    } else {
+      const { statusText } = await axios.post("/add/resident", {
+        name: `${firstName} ${lastName}`,
+        email,
+        password,
+        societyName,
+        pincode,
+        area,
+        wing,
+      });
+
+      if (statusText === "OK") {
+        alert("You have successfully registered. Kindly sign in to continue.");
+        Router.push("/signin");
+      } else {
+        alert("An error occured. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col justify-start items-center ">
       <p className="mt-2">
         <i>Create an account</i>
       </p>
-      <form className="grid grid-cols-2 gird-rows-5 gap-y-5 px-2 mt-5">
+      <form
+        className="grid grid-cols-2 grid-rows-5 gap-y-5 px-2 mt-5"
+        onSubmit={onFormSubmit}
+      >
         <label htmlFor="firstName">First Name</label>
         <input
           className="border-2 rounded-md"
           name="firstName"
           value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
           type="text"
           required
         />
@@ -71,6 +101,7 @@ export default function Register(props) {
           className="border-2 rounded-md"
           name="lastName"
           value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
           type="text"
           required
         />
@@ -81,8 +112,11 @@ export default function Register(props) {
           className="border-2 rounder-md"
           value={societyName}
           onChange={(e) => setSocietyName(e.target.value)}
+          required
         >
-          <option value="Choose society">Choose society</option>
+          <option value="" selected disabled>
+            Choose society
+          </option>
           {getSocietyNames()}
         </select>
         {societyName && (
@@ -94,8 +128,11 @@ export default function Register(props) {
               className="border-2 rounder-md"
               value={pincode}
               onChange={(e) => setPincode(Number(e.target.value))}
+              required
             >
-              <option value="Choose pincode">Choose Pincode</option>
+              <option value="" selected disabled>
+                Choose Pincode
+              </option>
 
               {getPincodes()}
             </select>
@@ -111,8 +148,11 @@ export default function Register(props) {
               className="border-2 rounder-md"
               value={area}
               onChange={(e) => setArea(e.target.value)}
+              required
             >
-              <option value="Choose area">Choose area</option>
+              <option value="" selected disabled>
+                Choose area
+              </option>
 
               {getAreas()}
             </select>
@@ -128,7 +168,12 @@ export default function Register(props) {
               className="border-2 rounder-md"
               value={wing}
               onChange={(e) => setWing(e.target.value)}
+              required
             >
+              <option value="" selected disabled>
+                Choose Wing
+              </option>
+
               {getWings()}
             </select>
           </>
@@ -138,6 +183,7 @@ export default function Register(props) {
           className="border-2 rounded-md"
           name="email"
           value={email}
+          onChange={(e) => setEmail(e.target.value)}
           type="email"
           required
         />
@@ -147,6 +193,7 @@ export default function Register(props) {
           className="border-2 rounded-md"
           name="password"
           value={password}
+          onChange={(e) => setPassword(e.target.value)}
           type="password"
           required
           pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -158,12 +205,15 @@ export default function Register(props) {
           className="border-2 rounded-md"
           name="password"
           value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           type="password"
           required
         />
-        <p>{societyName}</p>
+        {validationErr && (
+          <p className="col-span-2 text-red-600 font-bold justify-self-end">{`*${validationErr}`}</p>
+        )}
         <button
-          className="col-span-2 bg-blue-300 hover:bg-blue-400 rounded-md py-3 inline-block "
+          className="col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
           type="submit"
         >
           Submit
