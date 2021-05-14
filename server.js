@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 const passport = require("passport");
 const session = require("express-session");
+const bcrypt = require("bcrypt");
 
 mongoose.set("debug", true);
 
@@ -33,6 +34,10 @@ let residentsSchema = new mongoose.Schema(
     },
     societyName: {
       type: String,
+      required: true,
+    },
+    flatNo: {
+      type: Number,
       required: true,
     },
     wing: {
@@ -155,12 +160,40 @@ app.get("/api/get/societies", (req, res) => {
 });
 
 //ADD resident / New resident registration
-app.post("/api/add/resident", (req, res) => {
-  residents.create(req.body, (err, resident) => {
-    if (resident) {
-      res.status(200).send("Resident created successfully");
+app.post("/api/add/resident", async (req, res, next) => {
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+  //Check if the flat no is already registered
+  residents.find(
+    {
+      societyName: req.body.societyName,
+      pincode: req.body.pincode,
+      area: req.body.area,
+      wing: req.body.wing,
+      flatNo: req.body.flatNo,
+    },
+    (err, resident) => {
+      if (err) next(err);
+
+      if (resident.length) {
+        res.status(400).send("This flat is already registered.");
+      } else {
+
+        //New registration 
+        residents.create(
+          { ...req.body, password: hashedPassword },
+          (err, resident) => {
+            if (resident) {
+              res.status(200).send("Resident created successfully");
+            }
+            if (err) {
+              next(err);
+            }
+          }
+        );
+      }
     }
-  });
+  );
 });
 
 // Not found middleware
@@ -170,6 +203,7 @@ app.use((req, res, next) => {
 
 // Error Handling middleware
 app.use((err, req, res, next) => {
+  console.log("inside error handler");
   let errCode, errMessage;
 
   if (err.errors) {

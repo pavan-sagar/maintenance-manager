@@ -4,8 +4,6 @@ const bcrypt = require("bcrypt");
 function initialize(passport, users) {
   const authenticateUser = (email, password, done) => {
     users.findOne({ email }, async (err, user) => {
-      const hashedPassword = await bcrypt.hash(password, 10);
-
       if (user == null) {
         return done(null, false, { message: "No user with that email" });
       }

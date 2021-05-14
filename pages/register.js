@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { axios } from "../config";
 import Router from "next/router";
 
@@ -12,6 +12,7 @@ export default function Register(props) {
   const [pincode, setPincode] = useState();
   const [area, setArea] = useState();
   const [wing, setWing] = useState();
+  const [flatNo, setFlatNo] = useState();
   const [validationErr, setValidationErr] = useState();
 
   const getSocietyNames = () => {
@@ -58,21 +59,29 @@ export default function Register(props) {
     if (password !== confirmPassword) {
       setValidationErr("Passwords do not match");
     } else {
-      const { statusText } = await axios.post("/add/resident", {
-        name: `${firstName} ${lastName}`,
-        email,
-        password,
-        societyName,
-        pincode,
-        area,
-        wing,
-      });
-
-      if (statusText === "OK") {
-        alert("You have successfully registered. Kindly sign in to continue.");
-        Router.push("/signin");
-      } else {
-        alert("An error occured. Please try again.");
+      try {
+        const response = await axios.post("/add/resident", {
+          name: `${firstName} ${lastName}`,
+          email,
+          password,
+          societyName,
+          pincode,
+          area,
+          wing,
+          flatNo,
+        });
+        if (response.status === 200) {
+          alert(
+            "You have successfully registered. Kindly sign in to continue."
+          );
+          Router.push("/signin");
+        }
+      } catch (e) {
+        if (e.response.status === 400) {
+          setValidationErr(e.response.data);
+        } else {
+          console.log({ e });
+        }
       }
     }
   };
@@ -114,7 +123,7 @@ export default function Register(props) {
           onChange={(e) => setSocietyName(e.target.value)}
           required
         >
-          <option value="" selected disabled>
+          <option value="" selected>
             Choose society
           </option>
           {getSocietyNames()}
@@ -130,7 +139,7 @@ export default function Register(props) {
               onChange={(e) => setPincode(Number(e.target.value))}
               required
             >
-              <option value="" selected disabled>
+              <option value="" selected>
                 Choose Pincode
               </option>
 
@@ -150,7 +159,7 @@ export default function Register(props) {
               onChange={(e) => setArea(e.target.value)}
               required
             >
-              <option value="" selected disabled>
+              <option value="" selected>
                 Choose area
               </option>
 
@@ -176,6 +185,17 @@ export default function Register(props) {
 
               {getWings()}
             </select>
+
+            <label htmlFor="flat">Flat No.</label>
+
+            <input
+              type="text"
+              name="flat"
+              className="border-2 rounder-md"
+              value={flatNo}
+              onChange={(e) => setFlatNo(e.target.value)}
+              required
+            />
           </>
         )}
         <label htmlFor="email">Email</label>
