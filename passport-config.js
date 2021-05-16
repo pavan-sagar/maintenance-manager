@@ -10,6 +10,7 @@ function initialize(passport, users) {
 
       try {
         if (await bcrypt.compare(password, user.password)) {
+          console.log("Password matching");
           return done(null, user);
         } else {
           return done(null, false, { message: "Password incorrect" });

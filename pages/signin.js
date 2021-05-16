@@ -10,14 +10,14 @@ export function Signin(props) {
   const [signInError, setSignInError] = useState("");
   const router = useRouter();
 
-
   //Redirect user to profile is already logged in
   useEffect(() => {
     (async () => {
       const { data } = await axios.get("/signin");
 
       if (data.message.toLowerCase().includes("already authenticated")) {
-        router.push("/profile");
+        
+        router.push("/dashboard");
       }
     })();
   }, []);
@@ -29,7 +29,7 @@ export function Signin(props) {
     }
 
     if (props.userId) {
-      router.push("/profile");
+      router.push("/dashboard");
     }
   }, [props.authErr, props.userId]);
 
@@ -68,7 +68,7 @@ export function Signin(props) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        {/* <span className="text-red-600">{signInError}</span> */}
+        {signInError && <span className="text-red-600">{signInError}</span>}
         <button
           type="submit"
           className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
@@ -97,18 +97,20 @@ const mapStateToProps = (state) => {
 
 export default connect(mapStateToProps, {
   authenticateUser,
+  
 })(Signin);
 
 //Enable below in prod built and try (Comment the first useEffect)
 
 // export async function getServerSideProps(context) {
-//   const { data } = await axios.get("/login");
+//   const { data } = await axios.get("/signin");
 
-//   console.log(data)
+//   console.log(context)
 //   if (data.message.toLowerCase().includes("already authenticated")) {
+//     console.log("inside redirect if")
 //     return {
 //       redirect: {
-//         destination: "/profile",
+//         destination: "http://localhost:3000/dashboard",
 //         permanent: false,
 //       },
 //     };

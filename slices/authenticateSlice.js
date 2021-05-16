@@ -5,6 +5,7 @@ const initialState = {
   isSignedIn: null,
   userId: null,
   authErr: null,
+  userInfo: null,
 };
 
 export const authenticateSlice = createSlice({
@@ -17,7 +18,8 @@ export const authenticateSlice = createSlice({
       // which detects changes to a "draft state" and produces a brand new
       // immutable state based on those changes
       state.isSignedIn = true;
-      state.userId = action.payload;
+      state.userId = action.payload.email;
+      state.userInfo = action.payload;
       state.authErr = null;
     },
     SIGN_OUT: (state) => {
@@ -47,6 +49,8 @@ export const authenticateUser = (email, password) => async (dispatch) => {
     email,
     password,
   });
+
+  console.log(data);
 
   if (data.message.toLowerCase().includes("success")) {
     dispatch(SIGN_IN(data.userInfo));

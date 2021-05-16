@@ -18,7 +18,7 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: ["http://localhost:3000", "http://localhost:3001","http://localhost:3002"],
   })
 );
 app.use(express.urlencoded({ extended: false }));
@@ -26,7 +26,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 //Users collection schema
-let residentsSchema = new mongoose.Schema(
+const residentsSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -67,7 +67,7 @@ let residentsSchema = new mongoose.Schema(
 
 //Societies collection scheme
 
-let societiesSchema = new mongoose.Schema({
+const societiesSchema = new mongoose.Schema({
   adminEmail: {
     type: String,
     required: true,
@@ -88,13 +88,43 @@ let societiesSchema = new mongoose.Schema({
   },
 });
 
+//Transactions Schema
+
+const transactionsSchema = new mongoose.Schema(
+  {
+    flatID: {
+      type: String,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    period: {
+      type: String,
+      required: true,
+    },
+    paidOn: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 //Residents model
-let residents = mongoose.model("residents", residentsSchema);
+const residents =  mongoose.model("residents", residentsSchema);
 
 //Societies model
-let societies = mongoose.model("societies", societiesSchema);
+const societies = mongoose.model("societies", societiesSchema);
+
+//Transactions Model
+const transactions = mongoose.model("transactions", transactionsSchema);
 
 const initializePassport = require("./passport-config");
+const { default: next } = require("next");
 initializePassport(passport, residents);
 
 app.use(
@@ -110,7 +140,7 @@ app.use(passport.session());
 
 //APIS here
 
-//Authenticate
+//Authenticate / Sign In
 app.all("/api/signin", checkNotAuthenticated, function (req, res, next) {
   passport.authenticate("local", function (err, user, info) {
     if (err) {
@@ -124,7 +154,7 @@ app.all("/api/signin", checkNotAuthenticated, function (req, res, next) {
       if (err) {
         return next(err);
       }
-      return res.send({ message: "Success", userInfo: user.email });
+      return res.send({ message: "Success", userInfo: user });
     });
   })(req, res, next);
 });
@@ -178,8 +208,7 @@ app.post("/api/add/resident", async (req, res, next) => {
       if (resident.length) {
         res.status(400).send("This flat is already registered.");
       } else {
-
-        //New registration 
+        //New registration
         residents.create(
           { ...req.body, password: hashedPassword },
           (err, resident) => {
@@ -195,6 +224,29 @@ app.post("/api/add/resident", async (req, res, next) => {
     }
   );
 });
+
+//Send payment / Transact
+app.post("/api/transact", (req, res, next) => {
+  transactions.create(
+    {
+      flatID: req.body.flatID,
+      amount: req.body.amount,
+      period: req.body.period,
+      paidOn: req.body.paidOn,
+    },
+    (err, transaction) => {
+      if (err) next(err);
+    }
+  );
+});
+
+//GET transactions
+app.get('/api/get/transactions',(req,res,next)=>{
+  transactions.find({flatID:req.query.flatID},(err,transaction)=>{
+    if (err) next(err)
+    res.send(transaction)
+  })
+})
 
 // Not found middleware
 app.use((req, res, next) => {
@@ -223,3 +275,4 @@ app.use((err, req, res, next) => {
 const listener = app.listen(process.env.PORT || 3001, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
+
