@@ -18,7 +18,11 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(
   cors({
     credentials: true,
-    origin: ["http://localhost:3000", "http://localhost:3001","http://localhost:3002"],
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+    ],
   })
 );
 app.use(express.urlencoded({ extended: false }));
@@ -115,7 +119,7 @@ const transactionsSchema = new mongoose.Schema(
 );
 
 //Residents model
-const residents =  mongoose.model("residents", residentsSchema);
+const residents = mongoose.model("residents", residentsSchema);
 
 //Societies model
 const societies = mongoose.model("societies", societiesSchema);
@@ -241,12 +245,26 @@ app.post("/api/transact", (req, res, next) => {
 });
 
 //GET transactions
-app.get('/api/get/transactions',(req,res,next)=>{
-  transactions.find({flatID:req.query.flatID},(err,transaction)=>{
-    if (err) next(err)
-    res.send(transaction)
-  })
-})
+app.get("/api/get/transactions", (req, res, next) => {
+  transactions.find({ flatID: req.query.flatID }, (err, transaction) => {
+    if (err) next(err);
+    res.send(transaction);
+  });
+});
+
+//GET last payment info
+app.get("/api/get/transactions/last", (req, res, next) => {
+  transactions.findOne(
+    { flatID: req.query.flatID },
+    null,
+    { sort: { createdAt: -1 } },
+    (err, transaction) => {
+      if (err) next(err);
+
+      res.send(transaction);
+    }
+  );
+});
 
 // Not found middleware
 app.use((req, res, next) => {
@@ -275,4 +293,3 @@ app.use((err, req, res, next) => {
 const listener = app.listen(process.env.PORT || 3001, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
-
