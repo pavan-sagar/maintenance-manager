@@ -118,6 +118,19 @@ const transactionsSchema = new mongoose.Schema(
   }
 );
 
+//Dues schema
+const duesSchema = new mongoose.Schema({
+  flatID:String,
+  dueDate:Date,
+  status:String,
+  amount:Number,
+  period:[Number],
+  year:Number
+
+},{
+  timestamps:true
+})
+
 //Residents model
 const residents = mongoose.model("residents", residentsSchema);
 
@@ -126,6 +139,9 @@ const societies = mongoose.model("societies", societiesSchema);
 
 //Transactions Model
 const transactions = mongoose.model("transactions", transactionsSchema);
+
+//Dues model
+const dues = mongoose.model("dues",duesSchema)
 
 const initializePassport = require("./passport-config");
 const { default: next } = require("next");
@@ -265,6 +281,15 @@ app.get("/api/get/transactions/last", (req, res, next) => {
     }
   );
 });
+
+//GET dues 
+app.get("/api/get/dues",(req,res,next)=>{
+    dues.find({flatID:req.query.flatID,status:"Pending"},"period year amount",(err,due)=>{
+      if (err) next(err)
+      res.send(due)
+    })
+})
+
 
 // Not found middleware
 app.use((req, res, next) => {
