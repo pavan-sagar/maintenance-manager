@@ -13,10 +13,6 @@ export const authenticateSlice = createSlice({
   initialState,
   reducers: {
     SIGN_IN: (state, action) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based on those changes
       state.isSignedIn = true;
       state.userId = action.payload.email;
       state.userInfo = action.payload;
