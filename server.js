@@ -119,17 +119,31 @@ const transactionsSchema = new mongoose.Schema(
 );
 
 //Dues schema
-const duesSchema = new mongoose.Schema({
-  flatID:String,
-  dueDate:Date,
-  status:String,
-  amount:Number,
-  period:[Number],
-  year:Number
+const duesSchema = new mongoose.Schema(
+  {
+    flatID: String,
+    dueDate: Date,
+    status: String,
+    amount: Number,
+    period: [Number],
+    year: Number,
+  },
+  {
+    timestamps: true,
+  }
+);
 
-},{
-  timestamps:true
-})
+//Buildings Schema
+const buildingsSchema = new mongoose.Schema({
+  buildingID: String,
+  chairman: String,
+  maintenancePerMonth: Number,
+  collectAfterHowManyMonths: Number,
+  collectionOrder: String,
+  dueDay: Number,
+  mainStartPeriod: Number,
+  mainStartYear: Number,
+});
 
 //Residents model
 const residents = mongoose.model("residents", residentsSchema);
@@ -140,8 +154,11 @@ const societies = mongoose.model("societies", societiesSchema);
 //Transactions Model
 const transactions = mongoose.model("transactions", transactionsSchema);
 
+//Buildings Model
+const buildings = mongoose.model("buildings", buildingsSchema);
+
 //Dues model
-const dues = mongoose.model("dues",duesSchema)
+const dues = mongoose.model("dues", duesSchema);
 
 const initializePassport = require("./passport-config");
 const { default: next } = require("next");
@@ -282,14 +299,132 @@ app.get("/api/get/transactions/last", (req, res, next) => {
   );
 });
 
-//GET dues 
-app.get("/api/get/dues",(req,res,next)=>{
-    dues.find({flatID:req.query.flatID,status:"Pending"},"period year amount",(err,due)=>{
-      if (err) next(err)
-      res.send(due)
-    })
-})
+//GET dues
+app.get("/api/get/dues", (req, res, next) => {
+  dues.find(
+    { flatID: req.query.flatID, status: "Pending" },
+    "period year amount",
+    (err, due) => {
+      if (err) next(err);
+      res.send(due);
+    }
+  );
+});
 
+//Calculate dues
+app.get("/api/calculate/dues", (req, res, next) => {
+  //1. For each society
+
+  societies.find({}, "name wings pincode", (err, society) => {
+    if (err) next(err);
+    society.map((soc) => {
+      const { name, pincode } = soc;
+      //2. For each building in that society
+      soc.wings.map((building) => {
+        const buildingID = `${building}-${name}-${pincode}`;
+        buildings.find({ buildingID }, { chairman: 0 }, async (err, build) => {
+          if (err) next(err);
+
+          //Building is registered
+          if (build.length > 0) {
+            const [
+              {
+                maintenancePerMonth,
+                collectAfterHowManyMonths,
+                collectionOrder,
+                dueDay,
+                mainStartPeriod,
+                mainStartYear,
+              },
+            ] = build;
+
+            let startMainMonth;
+            let startMainYear;
+
+            //Get the start period and year of maintenance collection beginning,
+            //Get the month frequency and order (Pre/Post) of the collection and calculation due dates
+
+            //Values to test logic
+            // let collectionOrder = "Postpaid";
+            // let mainStartPeriod = 1;
+            // let collectAfterHowManyMonths = 12;
+            // let mainStartYear = 2022;
+            // let dueDay = 10
+
+            const getNextDueDate = (
+              startPeriod,
+              startYear,
+              incrementalMonths
+            ) => {
+              let nextMonth =
+                (startPeriod + incrementalMonths) % 12 == 0
+                  ? 12
+                  : (startPeriod + incrementalMonths) % 12;
+
+              let nextYear =
+                startPeriod + incrementalMonths > 12
+                  ? startYear + 1
+                  : startYear;
+
+              return [nextMonth, nextYear];
+            };
+
+            //Calculate first due date of beginning of maintenance collection
+            if (collectionOrder === "Prepaid") {
+              startMainMonth =
+                mainStartPeriod - 1 > 0
+                  ? (mainStartPeriod - 1) % 12
+                  : 12 - ((mainStartPeriod - 1) % 12);
+              startMainYear = mainStartYear;
+
+              if (mainStartPeriod == 1) {
+                startMainYear = mainStartYear - 1;
+              }
+            } else {
+              [startMainMonth, startMainYear] = getNextDueDate(
+                mainStartPeriod,
+                mainStartYear,
+                collectAfterHowManyMonths
+              );
+            }
+
+            let dueDateList = [];
+
+            const firstDueDate = new Date(
+              startMainYear,
+              startMainMonth - 1,
+              dueDay
+            );
+
+            dueDateList.push(firstDueDate);
+
+            let nextDueDate = firstDueDate;
+
+            while (nextDueDate < new Date(2030, 12, 10)) {
+              let [nextMonth, nextYear] = getNextDueDate(
+                nextDueDate.getMonth() + 1,
+                nextDueDate.getFullYear(),
+                collectAfterHowManyMonths
+              );
+
+              nextDueDate = new Date(nextYear, nextMonth - 1, dueDay);
+              if (nextDueDate < new Date(2030, 12, 10))
+                dueDateList.push(nextDueDate);
+            }
+          }
+        });
+      });
+    });
+  });
+  //2. For each building in that society
+  //Get the start period and year of maintenance collection beginning,
+  //Get the month frequency and order (Pre/Post) of the collection and calculation due dates
+  //For each due date and payment period
+  //3.For each resident in that building
+  //4.Check the list of transactions and find if payment is missed for any of the month given in above payment period
+  //If yes, add an entry into dues table
+  //If no, continue to next resident
+});
 
 // Not found middleware
 app.use((req, res, next) => {
@@ -298,7 +433,7 @@ app.use((req, res, next) => {
 
 // Error Handling middleware
 app.use((err, req, res, next) => {
-  console.log("inside error handler");
+  console.log("inside error handler", err);
   let errCode, errMessage;
 
   if (err.errors) {
