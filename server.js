@@ -6,6 +6,8 @@ require("dotenv").config();
 const passport = require("passport");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
+const subMonths = require("date-fns/subMonths");
+const addMonths = require("date-fns/addMonths");
 
 mongoose.set("debug", true);
 
@@ -54,6 +56,14 @@ const residentsSchema = new mongoose.Schema(
     },
     pincode: {
       type: Number,
+      required: true,
+    },
+    flatID: {
+      type: String,
+      required: true,
+    },
+    buildingID: {
+      type: String,
       required: true,
     },
 
@@ -351,66 +361,72 @@ app.get("/api/calculate/dues", (req, res, next) => {
             // let mainStartYear = 2022;
             // let dueDay = 10
 
-            const getNextDueDate = (
-              startPeriod,
-              startYear,
-              incrementalMonths
-            ) => {
-              let nextMonth =
-                (startPeriod + incrementalMonths) % 12 == 0
-                  ? 12
-                  : (startPeriod + incrementalMonths) % 12;
+            //Calculate first due date of beginning of maintenance collection
 
-              let nextYear =
-                startPeriod + incrementalMonths > 12
-                  ? startYear + 1
-                  : startYear;
+            const getNextDueDate = (year, period, isFirstDueDate = false) => {
+              let nextDueDate;
+              if (collectionOrder === "Prepaid" && isFirstDueDate) {
+                nextDueDate = subMonths(new Date(year, period - 1, dueDay), 1);
+              } else {
+                nextDueDate = addMonths(
+                  new Date(year, period - 1, dueDay),
+                  collectAfterHowManyMonths
+                );
+              }
 
-              return [nextMonth, nextYear];
+              return nextDueDate;
             };
 
-            //Calculate first due date of beginning of maintenance collection
-            if (collectionOrder === "Prepaid") {
-              startMainMonth =
-                mainStartPeriod - 1 > 0
-                  ? (mainStartPeriod - 1) % 12
-                  : 12 - ((mainStartPeriod - 1) % 12);
-              startMainYear = mainStartYear;
-
-              if (mainStartPeriod == 1) {
-                startMainYear = mainStartYear - 1;
-              }
-            } else {
-              [startMainMonth, startMainYear] = getNextDueDate(
-                mainStartPeriod,
-                mainStartYear,
-                collectAfterHowManyMonths
-              );
-            }
+            let firstDueDate = getNextDueDate(
+              mainStartYear,
+              mainStartPeriod,
+              true
+            );
 
             let dueDateList = [];
 
-            const firstDueDate = new Date(
-              startMainYear,
-              startMainMonth - 1,
-              dueDay
-            );
-
-            dueDateList.push(firstDueDate);
+            if (firstDueDate <= new Date(Date.now()))
+              dueDateList.push(firstDueDate);
 
             let nextDueDate = firstDueDate;
 
-            while (nextDueDate < new Date(2030, 12, 10)) {
-              let [nextMonth, nextYear] = getNextDueDate(
-                nextDueDate.getMonth() + 1,
+            while (nextDueDate < new Date(Date.now())) {
+              nextDueDate = getNextDueDate(
                 nextDueDate.getFullYear(),
-                collectAfterHowManyMonths
+                nextDueDate.getMonth() + 1
               );
 
-              nextDueDate = new Date(nextYear, nextMonth - 1, dueDay);
-              if (nextDueDate < new Date(2030, 12, 10))
+              if (nextDueDate < new Date(Date.now()))
                 dueDateList.push(nextDueDate);
             }
+            
+            //3.For each resident in that building
+
+            residents.find({ buildingID }, (err, residents) => {
+              if (err) next(err);
+              // Residents that are registered
+              if (residents.length > 0) {
+                residents.map((resident) => {
+                  const { flatID } = resident;
+
+                  //4.Check the list of transactions and find if payment is missed for any of the month given in above payment period
+                  transactions.find(
+                    { flatID },
+                    "amount period paidOn",
+                    (err, transactions) => {
+                      if (err) next(err);
+
+                      //Some transaction has been done by user
+                      if (transactions.length > 0) {
+                        transactions.map((transaction) => {
+                          const { amount, period, paidOn } = transaction;
+                        });
+                      }
+                    }
+                  );
+                });
+              }
+            });
           }
         });
       });
