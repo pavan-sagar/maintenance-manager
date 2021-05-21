@@ -69,6 +69,8 @@ export default function Register(props) {
           area,
           wing,
           flatNo,
+          buildingID: `${wing}-${societyName}-${pincode}`,
+          flatID: `${pincode}-${societyName}-${wing}-${flatNo}`,
         });
         if (response.status === 200) {
           alert(
