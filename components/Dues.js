@@ -8,7 +8,7 @@ export default function Dues(props) {
   const [amount, setAmount] = useState(9000);
   const [count, setCount] = useState(1);
   const [duesList, setDuesList] = useState();
-  const flatID = `${props.resident.pincode}-${props.resident.societyName}-${props.resident.wing}-${props.resident.flatNo}`;
+  const flatID = `${props.resident.flatNo}-${props.resident.wing}-${props.resident.societyName}-${props.resident.pincode}`;
 
   useEffect(() => {
     getDues();
@@ -20,7 +20,9 @@ export default function Dues(props) {
     if (data.length < 1) {
       setDuesList(
         <div className="grid grid-cols-2 gap-y-1 border-b-2 border-l-2 border-r-2 p-2">
-          <span className="col-span-2 font-medium text-blue-500 text-center">No dues to be paid</span>
+          <span className="col-span-2 font-medium text-blue-500 text-center">
+            No dues to be paid
+          </span>
         </div>
       );
 
@@ -34,8 +36,12 @@ export default function Dues(props) {
           <span>: {idx + 1}</span>
           <span className="font-medium text-blue-500">Period </span>
           <span>
-            : {getMonthName(due.period[0] - 1, 3)} to{" "}
-            {getMonthName(due.period[due.period.length - 1] - 1, 3)} {due.year}
+            : {getMonthName(due.period[0] - 1, 3)}{" "}
+            {due.period.length > 1 &&
+              ` to ${getMonthName(
+              due.period[due.period.length - 1] - 1,
+              3
+            )}`} {due.year}
           </span>
           <span className="font-medium text-blue-500">Amount</span>
           <span>: {due.amount}</span>

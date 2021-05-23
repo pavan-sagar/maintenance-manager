@@ -123,6 +123,10 @@ const transactionsSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    year: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -300,7 +304,7 @@ app.get("/api/get/transactions", (req, res, next) => {
 app.get("/api/get/transactions/last", (req, res, next) => {
   transactions.findOne(
     { flatID: req.query.flatID },
-    null,
+    "amount paidOn period year",
     { sort: { createdAt: -1 } },
     (err, transaction) => {
       if (err) next(err);
@@ -348,9 +352,6 @@ app.get("/api/calculate/dues", (req, res, next) => {
                 mainStartYear,
               },
             ] = build;
-
-            let startMainMonth;
-            let startMainYear;
 
             //Get the start period and year of maintenance collection beginning,
             //Get the month frequency and order (Pre/Post) of the collection and calculation due dates
@@ -413,7 +414,7 @@ app.get("/api/calculate/dues", (req, res, next) => {
                   //4.Check the list of transactions and find if payment is missed for any of the month given in above payment period
                   transactions.find(
                     { flatID },
-                    "amount period paidOn",
+                    "amount period year",
                     (err, transactions) => {
                       if (err) next(err);
 
@@ -441,7 +442,14 @@ app.get("/api/calculate/dues", (req, res, next) => {
                             endDueDate = subMonths(dueDate, 1);
                           }
 
-                          let duePeriodArray = [];
+                          // We are creating a data structure like below where each key is year of due
+                          // and its value will be an array containing periods for which maintenance is due.
+
+                          // {
+                          //   "2020": [...],
+                          //   "2021":[...]
+                          // }
+
                           let duePeriodArrObj = {};
                           if (startDueDate === endDueDate) {
                             //Collection is monthly
@@ -454,16 +462,7 @@ app.get("/api/calculate/dues", (req, res, next) => {
                                 startDueDate.getMonth() + 1,
                               ];
                             }
-
-                            // duePeriodArray.push(startDueDate.getMonth() + 1);
                           } else {
-                            // for (
-                            //   let i = startDueDate.getMonth() + 1;
-                            //   i <= endDueDate.getMonth() + 1;
-                            //   i++
-                            // )
-                            //   duePeriodArray.push(i);
-
                             let dueDatesIntervals = eachMonthOfInterval({
                               start: startDueDate,
                               end: endDueDate,
@@ -481,21 +480,11 @@ app.get("/api/calculate/dues", (req, res, next) => {
                             });
                           }
 
-                          // {
-                          //   "2020": [...],
-                          //   "2021":[...]
-                          // }
-                          // let dueYear = startDueDate.getFullYear();
-
                           let dueYearsArr = Object.keys(duePeriodArrObj);
 
                           dueYearsArr.map((year) => {
                             let paidPeriods = transactions
-                              .filter(
-                                (trx) =>
-                                  new Date(trx.paidOn).getFullYear() ===
-                                  Number(year)
-                              )
+                              .filter((trx) => trx.year === Number(year))
                               .map((trx) => trx.period)
                               .flat();
 
@@ -504,62 +493,36 @@ app.get("/api/calculate/dues", (req, res, next) => {
                             );
 
                             if (periodsNotPaid.length > 0) {
-                              console.log({
+                              let query = {
+                                flatID,
+                                status: "Pending",
+                                period: periodsNotPaid,
+                                year,
+                              };
+                              let update = {
                                 flatID,
                                 dueDate,
                                 status: "Pending",
                                 amount:
                                   maintenancePerMonth * periodsNotPaid.length,
                                 period: periodsNotPaid,
-                                year: year,
-                              });
+                                year,
+                              };
+
+                              let condition = { upsert: true, new: true };
+
+                              dues.findOneAndUpdate(
+                                query,
+                                update,
+                                condition,
+                                (err, due) => {
+                                  if (err) next(err);
+                                  console.log(due);
+                                }
+                              );
                             }
                           });
-                          // let paidPeriods = transactions
-                          //   .filter(
-                          //     (trx) =>
-                          //       new Date(trx.paidOn).getFullYear() === dueYear
-                          //   )
-                          //   .map((trx) => trx.period)
-                          //   .flat();
-
-                          // let periodsNotPaid = duePeriodArray.filter(
-                          //   (duePeriod) => !paidPeriods.includes(duePeriod)
-                          // );
-                          // .map((duePeriod) => ({
-                          //   period: duePeriod,
-                          //   year: dueYear,
-                          // }));
-
-                          // if (periodsNotPaid.length > 0) {
-                          // Add the due to dues table
-                          // console.log({
-                          //   flatID,
-                          //   dueDate,
-                          //   status: "Pending",
-                          //   amount:
-                          //     maintenancePerMonth * periodsNotPaid.length,
-                          //   period: periodsNotPaid,
-                          //   year: dueYear,
-                          // });
-                          // dues.create(
-                          //   {
-                          //     flatID,
-                          //     dueDate,
-                          //     status: "Pending",
-                          //     amount:
-                          //       maintenancePerMonth * periodsNotPaid.length,
-                          //     period: periodsNotPaid,
-                          //     year: dueYear,
-                          //   },
-                          //   (err, due) => {
-                          //     if (err) next(err);
-                          //     console.log(due);
-                          //   }
-                          // );
-                          // }
                         });
-                        //
                       }
                     }
                   );
@@ -570,6 +533,7 @@ app.get("/api/calculate/dues", (req, res, next) => {
         });
       });
     });
+    res.status(200).send({});
   });
   //2. For each building in that society
   //Get the start period and year of maintenance collection beginning,

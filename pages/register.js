@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { axios } from "../config";
 import Router from "next/router";
 
@@ -70,7 +70,7 @@ export default function Register(props) {
           wing,
           flatNo,
           buildingID: `${wing}-${societyName}-${pincode}`,
-          flatID: `${pincode}-${societyName}-${wing}-${flatNo}`,
+          flatID: `${flatNo}-${wing}-${societyName}-${pincode}`,
         });
         if (response.status === 200) {
           alert(
