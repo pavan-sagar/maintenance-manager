@@ -16,11 +16,11 @@ const LastPayment = (props) => {
 
     if (status === 200) {
       setLastPaidAmount(data.amount);
-      setLastPaidDatetime(new Date(data.paidOn).toLocaleString());
+      setLastPaidDatetime(new Date(data.paidOn).toLocaleDateString());
       setLastPaidPeriod(data.period);
       setLastPaidYear(data.year);
     }
-  });
+  }, [lastPaidAmount]);
 
   // const testTransact = async () => {
   //   const { data } = axios.post("/transact", {
@@ -43,8 +43,7 @@ const LastPayment = (props) => {
 
   if (lastPaidAmount && lastPaidPeriod) {
     return (
-      <div>
-        {console.log(lastPaidPeriod)}
+      <div className="p-1 m-auto">
         <section className="grid grid-cols-2 gap-y-2 w-max p-2 mx-auto border-2 rounded shadow">
           <span className="col-span-2 font-semibold">
             Last Payment Details:
@@ -52,7 +51,7 @@ const LastPayment = (props) => {
           <span className="font-medium text-blue-500">Amount</span>
           <span> : INR {lastPaidAmount}</span>
           <span className="font-medium text-blue-500">Date </span>
-          <span>: {lastPaidDatetime} LT</span>
+          <span>: {lastPaidDatetime}</span>
           <span className="font-medium text-blue-500">Maintenance Period </span>
           <span>
             : {getMonthName(lastPaidPeriod[0] - 1, 3)}{" "}

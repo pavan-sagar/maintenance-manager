@@ -5,8 +5,8 @@ import Signout from "./Signout";
 
 function Navbar(props) {
   return (
-    <header className="w-screen">
-      <nav className="border-solid border-b-2 border-white-900 p-3 shadow-sm w-full">
+    <header className="">
+      <nav className="border-solid border-b-2 border-white-900 p-3 shadow-sm">
         <ul className="flex flex-row">
           <li className="inline-block">
             <Link href="/">Maintenance Manager</Link>

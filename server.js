@@ -158,6 +158,7 @@ const buildingsSchema = new mongoose.Schema({
   dueDay: Number,
   mainStartPeriod: Number,
   mainStartYear: Number,
+  upcomingDueDetails: mongoose.Schema.Types.Mixed,
 });
 
 //Residents model
@@ -241,6 +242,16 @@ app.get("/api/get/societies", (req, res) => {
   });
 });
 
+//GET building
+app.get("/api/get/building", (req, res, next) => {
+  const { buildingID } = req.query;
+
+  buildings.findOne({ buildingID }, (err, output) => {
+    if (err) next(err);
+    res.status(200).send(output);
+  });
+});
+
 //ADD resident / New resident registration
 app.post("/api/add/resident", async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -321,13 +332,236 @@ app.get("/api/get/dues", (req, res, next) => {
     "period year amount",
     (err, due) => {
       if (err) next(err);
-      res.send(due);
+      if (due.length) {
+        res.send(due);
+      } else {
+        res.send([]);
+      }
     }
   );
 });
 
+//Calculate dues of particular flat
+app.get("/api/calculate/dues/", (req, res, next) => {
+  const flatID = req.query.flatID;
+
+  const buildingID = flatID.split("-").slice(1).join("-");
+
+  buildings.find({ buildingID }, { chairman: 0 }, async (err, build) => {
+    if (err) next(err);
+
+    const [
+      {
+        maintenancePerMonth,
+        collectAfterHowManyMonths,
+        collectionOrder,
+        dueDay,
+        mainStartPeriod,
+        mainStartYear,
+      },
+    ] = build;
+
+    //Calculate first due date of beginning of maintenance collection
+
+    const getNextDueDate = (year, period, isFirstDueDate = false) => {
+      let nextDueDate;
+      if (collectionOrder === "Prepaid" && isFirstDueDate) {
+        nextDueDate = subMonths(new Date(year, period - 1, dueDay), 1);
+      } else {
+        nextDueDate = addMonths(
+          new Date(year, period - 1, dueDay),
+          collectAfterHowManyMonths
+        );
+      }
+
+      return nextDueDate;
+    };
+
+    let firstDueDate = getNextDueDate(mainStartYear, mainStartPeriod, true);
+
+    let dueDateList = [];
+    let upcomingDueDetails = {
+      periodRange: [],
+    };
+
+    if (firstDueDate < new Date(Date.now())) {
+      dueDateList.push(firstDueDate);
+    } else {
+      upcomingDueDetails.date = firstDueDate;
+    }
+
+    let nextDueDate = firstDueDate;
+
+    while (nextDueDate < new Date(Date.now())) {
+      nextDueDate = getNextDueDate(
+        nextDueDate.getFullYear(),
+        nextDueDate.getMonth() + 1
+      );
+
+      if (nextDueDate < new Date(Date.now())) {
+        dueDateList.push(nextDueDate);
+      } else {
+        upcomingDueDetails.date = nextDueDate;
+      }
+    }
+
+    //Calculate and save data of future/upcoming due details
+    const setFutureDueDetails = () => {
+      let startDueDate;
+      let endDueDate;
+      let dueDate = upcomingDueDetails.date;
+
+      if (collectionOrder === "Prepaid") {
+        startDueDate = addMonths(dueDate, 1);
+
+        endDueDate = addMonths(dueDate, collectAfterHowManyMonths);
+      } else {
+        startDueDate = subMonths(dueDate, collectAfterHowManyMonths);
+
+        endDueDate = subMonths(dueDate, 1);
+      }
+
+      if (startDueDate === endDueDate) {
+        //Collection is monthly
+        upcomingDueDetails.periodRange = [startDueDate.getMonth() + 1];
+        upcomingDueDetails.year = startDueDate.getFullYear();
+        upcomingDueDetails.amount = maintenancePerMonth;
+      } else {
+        let dueDatesIntervals = eachMonthOfInterval({
+          start: startDueDate,
+          end: endDueDate,
+        });
+        upcomingDueDetails.year = endDueDate.getFullYear();
+
+        dueDatesIntervals.map((item) => {
+          let month = item.getMonth() + 1;
+          upcomingDueDetails.periodRange.push(month);
+        });
+
+        upcomingDueDetails.amount =
+          upcomingDueDetails.periodRange.length * maintenancePerMonth;
+      }
+
+      buildings.findOneAndUpdate(
+        { buildingID },
+        { upcomingDueDetails },
+        (err, output) => {
+          if (err) next(err);
+          console.log(output);
+        }
+      );
+    };
+
+    setFutureDueDetails();
+
+    //Check the list of transactions and find if payment is missed for any of the month given in above payment period
+    transactions.find({ flatID }, "amount period year", (err, transactions) => {
+      if (err) next(err);
+
+      //Some transaction has been done by user
+      if (transactions.length > 0) {
+        dueDateList.map((dueDate) => {
+          let startDueDate;
+          let endDueDate;
+
+          //Calculate the months for which payment has to be made by that due date
+
+          if (collectionOrder === "Prepaid") {
+            startDueDate = addMonths(dueDate, 1);
+
+            endDueDate = addMonths(dueDate, collectAfterHowManyMonths);
+          } else {
+            startDueDate = subMonths(dueDate, collectAfterHowManyMonths);
+
+            endDueDate = subMonths(dueDate, 1);
+          }
+
+          // We are creating a data structure like below where each key is year of due
+          // and its value will be an array containing periods for which maintenance is due.
+
+          // {
+          //   "2020": [...],
+          //   "2021":[...]
+          // }
+
+          let duePeriodArrObj = {};
+          if (startDueDate === endDueDate) {
+            //Collection is monthly
+            if (startDueDate.getFullYear() in duePeriodArrObj) {
+              duePeriodArrObj[startDueDate.getFullYear()].push(
+                startDueDate.getMonth() + 1
+              );
+            } else {
+              duePeriodArrObj[startDueDate.getFullYear()] = [
+                startDueDate.getMonth() + 1,
+              ];
+            }
+          } else {
+            let dueDatesIntervals = eachMonthOfInterval({
+              start: startDueDate,
+              end: endDueDate,
+            });
+
+            dueDatesIntervals.map((item) => {
+              let month = item.getMonth() + 1;
+              let year = item.getFullYear();
+
+              if (year in duePeriodArrObj) {
+                duePeriodArrObj[year].push(month);
+              } else {
+                duePeriodArrObj[year] = [month];
+              }
+            });
+          }
+
+          let dueYearsArr = Object.keys(duePeriodArrObj);
+
+          dueYearsArr.map((year) => {
+            let paidPeriods = transactions
+              .filter((trx) => trx.year === Number(year))
+              .map((trx) => trx.period)
+              .flat();
+
+            let periodsNotPaid = duePeriodArrObj[year].filter(
+              (duePeriod) => !paidPeriods.includes(duePeriod)
+            );
+
+            if (periodsNotPaid.length > 0) {
+              let query = {
+                flatID,
+                status: "Pending",
+                period: periodsNotPaid,
+                year,
+              };
+              let update = {
+                flatID,
+                dueDate,
+                status: "Pending",
+                amount: maintenancePerMonth * periodsNotPaid.length,
+                period: periodsNotPaid,
+                year,
+              };
+
+              let condition = { upsert: true, new: true };
+
+              dues.findOneAndUpdate(query, update, condition, (err, due) => {
+                if (err) next(err);
+              });
+            }
+          });
+        });
+      }
+    });
+  });
+
+  res.status(200).send({ status: "Success" });
+  //   }); //
+  // }//
+  // })
+});
+
 //Calculate dues
-app.get("/api/calculate/dues", (req, res, next) => {
+app.get("/api/calculate/dues/all-societies", (req, res, next) => {
   //1. For each society
 
   societies.find({}, "name wings pincode", (err, society) => {
@@ -517,7 +751,6 @@ app.get("/api/calculate/dues", (req, res, next) => {
                                 condition,
                                 (err, due) => {
                                   if (err) next(err);
-                                  console.log(due);
                                 }
                               );
                             }
