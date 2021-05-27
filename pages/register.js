@@ -89,9 +89,9 @@ export default function Register(props) {
   };
 
   return (
-    <div className="h-screen flex flex-col justify-start items-center ">
+    <div className="h-max flex flex-col justify-start items-center border-2 rounded-md shadow-md w-[95%] md:w-max">
       <p className="mt-2">
-        <i>Create an account</i>
+        <i className="font-semibold italic">Create an account</i>
       </p>
       <form
         className="grid grid-cols-2 grid-rows-5 gap-y-5 px-2 mt-5"
@@ -235,7 +235,7 @@ export default function Register(props) {
           <p className="col-span-2 text-red-600 font-bold justify-self-end">{`*${validationErr}`}</p>
         )}
         <button
-          className="col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+          className="mb-5 col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
           type="submit"
         >
           Submit

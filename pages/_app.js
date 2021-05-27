@@ -14,7 +14,7 @@ export default function MyApp({ Component, pageProps }) {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
           <Navbar />
-          <div className="container m-auto overflow-x-hidden">
+          <div className="container flex flex-col flex-wrap h-screen pt-[5rem] items-center overflow-x-hidden">
 
           <Component {...pageProps} />
         </div>

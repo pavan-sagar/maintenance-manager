@@ -5,7 +5,7 @@ import UpcomingPayment from "../components/UpcomingPayment";
 
 export const Dashboard = (props) => {
   return (
-    <div>
+    <div className="flex flex-col justify-start h-max">
       <p className="p-2">
         Welcome <i>{props.resident ? props.resident.name : "Pavan"}</i>
       </p>
