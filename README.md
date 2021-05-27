@@ -13,4 +13,5 @@ Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_mediu
 1. Clone the repository --> git clone 
 2. Install dependencies --> npm install
 3. Run the dev server --> npm run dev
+4. Run the backend server --> npm run devBackend
 
