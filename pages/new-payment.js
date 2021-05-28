@@ -8,15 +8,47 @@ function new_payment(props) {
   const [maintenancePerMonth, setMaintenancePerMonth] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [amount, setAmount] = useState();
-  const [upcomingDuePeriodRange, setUpcomingDuePeriodRange] = useState([]);
+  const [upcomingDueDetails, setUpcomingDueDetails] = useState();
   const [fromMonth, setFromMonth] = useState(1);
   const [toMonth, setToMonth] = useState(12);
+  const [year, setYear] = useState(new Date(Date.now()).getFullYear());
+  const [valErrToMonth, setValErrToMonth] = useState("");
+  const [valErrPrevPeriod, setValErrPrevPeriod] = useState("");
 
   const buildingID = `${props.resident.wing}-${props.resident.societyName}-${props.resident.pincode}`;
 
   useEffect(() => {
     getBuildingInfo();
   }, [isLoading]);
+
+  useEffect(() => {
+    setAmount((prevAmount) => {
+      if ((toMonth - fromMonth + 1) * maintenancePerMonth <= 0) {
+        setValErrToMonth(`"To" Month cannot be less than "From" month`);
+      } else {
+        setValErrToMonth("");
+      }
+      if (prevAmount != (toMonth - fromMonth + 1) * maintenancePerMonth) {
+        return (toMonth - fromMonth + 1) * maintenancePerMonth;
+      } else {
+        return prevAmount;
+      }
+    });
+    //Check if selected month and year belongs to upcoming or past dues period range
+    if (
+      upcomingDueDetails?.year === Number(year) &&
+      upcomingDueDetails?.periodRange.includes(Number(fromMonth))
+    ) {
+      setValErrPrevPeriod(
+        "Selected months are of upcoming or previous payment period. Kindly choose months and/or year for future date range."
+      );
+    } else {
+      //Reset the validation error value to blank
+
+      setValErrPrevPeriod("");
+    }
+  }, [fromMonth, toMonth, year]);
+
   const getBuildingInfo = async () => {
     const { data, status } = await axios(
       `/get/building?buildingID=${buildingID}`
@@ -24,7 +56,7 @@ function new_payment(props) {
 
     if (status === 200) {
       setMaintenancePerMonth(data.maintenancePerMonth);
-      setUpcomingDuePeriodRange(data.upcomingDueDetails.periodRange);
+      setUpcomingDueDetails(data.upcomingDueDetails);
 
       setIsLoading(false);
     } else {
@@ -39,7 +71,7 @@ function new_payment(props) {
     });
 
     return monthsArray.map((month, idx) => (
-      <option value={idx + 1} key={idx + 1}>
+      <option value={Number(idx + 1)} key={idx + 1}>
         {enUS.localize.month(month.getMonth(), { width: "abbreviated" })}
       </option>
     ));
@@ -61,18 +93,28 @@ function new_payment(props) {
     ));
   };
 
+  const handleSubmit = () => {
+    if (valErrToMonth || valErrPrevPeriod) {
+      console.log("There are errors");
+    } else {
+      console.log("All good");
+    }
+  };
+
   return (
     (!isLoading && (
-      <div className="grid grid-cols-2 gap-x-5 gap-y-5 mx-auto w-[90%] md:w-max border-2 rounded-md shadow-md p-2">
-        <span className="col-span-2 font-semibold italic">New Payment</span>
-        <div className="flex flex-col justify-center">
+      <div className="grid grid-cols-2 items-start gap-x-5 gap-y-5 mx-auto w-[90%] md:w-max border-2 rounded-md shadow-md p-2">
+        <span className="col-span-2 font-semibold text-center italic">
+          New Payment
+        </span>
+        <div className="flex flex-col justify-start">
           <label htmlFor="fromMonth" className="font-medium text-blue-500">
             From Month
           </label>
           <select
             name="fromMonth"
             value={fromMonth}
-            onChange={(e) => setFromMonth(e.target.value)}
+            onChange={(e) => setFromMonth(Number(e.target.value))}
             className="w-max"
           >
             {renderMonths()}
@@ -86,17 +128,27 @@ function new_payment(props) {
           <select
             name="toMonth"
             value={toMonth}
-            onChange={(e) => setToMonth(e.target.value)}
+            onChange={(e) => setToMonth(Number(e.target.value))}
             className="w-max"
           >
             {renderMonths()}
           </select>
+
+          {valErrToMonth && (
+            <p className="text-sm overflow-auto w-20 text-red-600">
+              {valErrToMonth}
+            </p>
+          )}
         </div>
         <label htmlFor="year" className="font-medium text-blue-500">
           Year
         </label>
 
-        <select name="year" className="w-max">
+        <select
+          name="year"
+          className="w-max"
+          onChange={(e) => setYear(Number(e.target.value))}
+        >
           {renderYears()}
         </select>
         <label
@@ -111,10 +163,16 @@ function new_payment(props) {
           Amount
         </label>
 
-        <span>{(toMonth - fromMonth + 1) * maintenancePerMonth}</span>
+        <span>{amount > 0 ? amount : ""}</span>
+        {valErrPrevPeriod && (
+          <p className="col-span-2 text-sm overflow-auto text-red-600">
+            {valErrPrevPeriod}
+          </p>
+        )}
         <button
           className="col-span-2 w-full justify-self-center bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
           type="submit"
+          onClick={handleSubmit}
         >
           Pay
         </button>
