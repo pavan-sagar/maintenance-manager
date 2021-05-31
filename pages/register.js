@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { axios } from "../config";
 import Router from "next/router";
+import { motion } from "framer-motion";
+
 
 export default function Register(props) {
   const [firstName, setFirstName] = useState("");
@@ -234,12 +236,12 @@ export default function Register(props) {
         {validationErr && (
           <p className="col-span-2 text-red-600 font-bold justify-self-end">{`*${validationErr}`}</p>
         )}
-        <button
+        <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95, transition:{type:'spring',stiffness:75}}}
           className="mb-5 col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
           type="submit"
         >
           Submit
-        </button>
+        </motion.button>
       </form>
     </div>
   );

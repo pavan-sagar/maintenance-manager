@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import router from "next/router";
 import { connect } from "react-redux";
 import { axios } from "../config";
@@ -15,9 +16,17 @@ export const SignOut = (props) => {
   };
 
   return (
-    <a onClick={logOut} href="#" className="hover:text-[#EE5D36]">
+    <motion.a
+      onClick={logOut}
+      href="#"
+      whileHover={{
+        color: "#EE5D36",
+        transition: { duration: 0.2, ease: "easeOut" },
+      }}
+      
+    >
       Sign Out
-    </a>
+    </motion.a>
   );
 };
 

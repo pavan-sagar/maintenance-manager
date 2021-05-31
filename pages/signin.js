@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import { useRouter } from "next/router";
 import { authenticateUser } from "../slices/authenticateSlice";
 import { axios } from "../config";
+import { motion } from "framer-motion";
 
 export function Signin(props) {
   const [email, setEmail] = useState("");
@@ -16,7 +17,6 @@ export function Signin(props) {
       const { data } = await axios.get("/signin");
 
       if (data.message.toLowerCase().includes("already authenticated")) {
-        
         router.push("/dashboard");
       }
     })();
@@ -69,12 +69,17 @@ export function Signin(props) {
           required
         />
         {signInError && <span className="text-red-600">{signInError}</span>}
-        <button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{
+            scale: 0.95,
+            transition: { type: "spring", stiffness: 75 },
+          }}
           type="submit"
           className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
         >
           Submit
-        </button>
+        </motion.button>
       </form>
 
       <style jsx>
@@ -97,7 +102,6 @@ const mapStateToProps = (state) => {
 
 export default connect(mapStateToProps, {
   authenticateUser,
-  
 })(Signin);
 
 //Enable below in prod built and try (Comment the first useEffect)
