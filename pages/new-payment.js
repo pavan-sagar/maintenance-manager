@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import { connect } from "react-redux";
 import { axios } from "../config";
 import Modal from "react-modal";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { getMonthName } from "../utilities";
 
 Modal.setAppElement("#__next");
@@ -15,6 +15,9 @@ function new_payment(props) {
   const [isLoading, setIsLoading] = useState(true);
   const [upcomingDueDetails, setUpcomingDueDetails] = useState();
   const [showModal, setShowModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [showSuccessToastMessage, setShowSuccessToastMessage] = useState("");
+  const [showFailureToastMessage, setShowFailureToastMessage] = useState("");
   const buildingID = `${props.resident.wing}-${props.resident.societyName}-${props.resident.pincode}`;
 
   useEffect(() => {
@@ -65,6 +68,47 @@ function new_payment(props) {
     ));
   };
 
+  const submitTransaction = async ({ amount, period, year }) => {
+    console.log(amount, period, year);
+    const periodOfTrx = [];
+
+    //From and To month are same
+    if (Number(period[0]) === Number(period[1])) {
+      periodOfTrx.push(Number(period[0]));
+    } else {
+      //From and To month are different
+
+      for (let i = period[0]; i <= period[1]; i++) {
+        periodOfTrx.push(Number(i));
+      }
+    }
+    const { data, statusText } = await axios.post("/transact", {
+      flatID: `${props.resident.flatNo}-${buildingID}`,
+      amount,
+      year,
+      period: periodOfTrx,
+    });
+
+    if (statusText) {
+      setShowModal(false);
+
+      if (statusText === "OK") {
+        setShowSuccessToastMessage("Transaction completed successfully !");
+        setShowFailureToastMessage("");
+      } else {
+        setShowSuccessToastMessage("");
+        setShowFailureToastMessage("An error occured. Please try again.");
+      }
+
+      setShowToast(true);
+
+      //Show Toast notification for 2 seconds
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
+    }
+  };
+
   return (
     (!isLoading && (
       <>
@@ -81,6 +125,7 @@ function new_payment(props) {
             if (Number(toMonth) < Number(fromMonth)) {
               errors.toMonth = `"To" Month cannot be less than "From" month`;
             } else if (
+              //Date range choosen coincides with upcoming or previous dues date range.
               upcomingDueDetails?.year === Number(year) &&
               upcomingDueDetails?.periodRange.includes(Number(fromMonth))
             ) {
@@ -179,9 +224,10 @@ function new_payment(props) {
                   },
                 }}
                 shouldFocusAfterRender={false}
+                onRequestClose={() => setShowModal(false)}
               >
                 <motion.div
-                  className="grid grid-cols-2 p-2 border-2 m-4 bg-white"
+                  className="grid grid-cols-2 p-2 border-2 m-4 bg-white rounded-md"
                   animate={{
                     y: 0,
                   }}
@@ -207,7 +253,17 @@ function new_payment(props) {
                   <span>Total Amount:</span>
                   <span>{(toMonth - fromMonth + 1) * maintenancePerMonth}</span>
                   <div className="mt-3 col-span-2">
-                    <button className="m-3 w-[40%] bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600">
+                    <button
+                      className="m-3 w-[40%] bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+                      onClick={() =>
+                        submitTransaction({
+                          amount:
+                            (toMonth - fromMonth + 1) * maintenancePerMonth,
+                          year,
+                          period: [Number(fromMonth), Number(toMonth)],
+                        })
+                      }
+                    >
                       Pay
                     </button>
                     <button
@@ -222,6 +278,20 @@ function new_payment(props) {
             </>
           )}
         </Formik>
+        <AnimatePresence>
+          {showToast && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`mt-[2rem] md:mt-[4rem] py-2 px-[1.5rem] md:px-20 border-2 font-sans font-light rounded-md ${
+                showSuccessToastMessage ? "bg-green-300" : "bg-red-300"
+              }`}
+            >
+              {showSuccessToastMessage || showFailureToastMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </>
     )) ||
     "Loading..."

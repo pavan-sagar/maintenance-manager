@@ -121,7 +121,6 @@ const transactionsSchema = new mongoose.Schema(
     },
     paidOn: {
       type: Date,
-      required: true,
     },
     year: {
       type: Number,
@@ -295,10 +294,12 @@ app.post("/api/transact", (req, res, next) => {
       flatID: req.body.flatID,
       amount: req.body.amount,
       period: req.body.period,
-      paidOn: req.body.paidOn,
+      year: req.body.year,
+      paidOn: req.body?.paidOn || new Date(Date.now()),
     },
     (err, transaction) => {
       if (err) next(err);
+      res.send(transaction);
     }
   );
 });
