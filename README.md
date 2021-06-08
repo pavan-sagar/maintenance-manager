@@ -15,3 +15,6 @@ Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_mediu
 3. Run the dev server --> npm run dev
 4. Run the backend server --> npm run devBackend
 
+## Kanban Board Link
+
+[Features] (https://www.notion.so/0acc5831bd814272a6b134e91ea1b844?v=1ac65757e3e444d2b0ef6b2634ff343d)

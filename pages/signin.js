@@ -22,7 +22,7 @@ export function Signin(props) {
     })();
   }, []);
 
-  //Show authentication error or send to profile is logged in
+  //Show authentication error or send to dashboard if already logged in
   useEffect(() => {
     if (props.authErr) {
       setSignInError(props.authErr);
@@ -41,55 +41,57 @@ export function Signin(props) {
   };
 
   return (
-    <div className="flex justify-center relative w-screen  px-2  mt-[3rem]">
-      <form
-        onSubmit={authSubmit}
-        className="grid grid-cols-2 grid-rows-3 gap-y-1"
-      >
-        <label htmlFor="email" className="">
-          Email address
-        </label>
-        <input
-          className="border-2"
-          name="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <label htmlFor="password" className="t">
-          Password
-        </label>
-        <input
-          className="border-2"
-          type="password"
-          name="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        {signInError && <span className="text-red-600">{signInError}</span>}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{
-            scale: 0.95,
-            transition: { type: "spring", stiffness: 75 },
-          }}
-          type="submit"
-          className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+    !props.userId && (
+      <div className="flex justify-center relative w-screen  px-2  mt-[3rem]">
+        <form
+          onSubmit={authSubmit}
+          className="grid grid-cols-2 grid-rows-3 gap-y-1"
         >
-          Submit
-        </motion.button>
-      </form>
+          <label htmlFor="email" className="">
+            Email address
+          </label>
+          <input
+            className="border-2"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <label htmlFor="password" className="t">
+            Password
+          </label>
+          <input
+            className="border-2"
+            type="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {signInError && <span className="text-red-600">{signInError}</span>}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{
+              scale: 0.95,
+              transition: { type: "spring", stiffness: 75 },
+            }}
+            type="submit"
+            className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+          >
+            Submit
+          </motion.button>
+        </form>
 
-      <style jsx>
-        {`
-          input {
-            height: 2rem;
-          }
-        `}
-      </style>
-    </div>
+        <style jsx>
+          {`
+            input {
+              height: 2rem;
+            }
+          `}
+        </style>
+      </div>
+    )
   );
 }
 
