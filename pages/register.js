@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { axios } from "../config";
 import Router from "next/router";
 import { motion } from "framer-motion";
-
 
 export default function Register(props) {
   const [firstName, setFirstName] = useState("");
@@ -16,6 +15,25 @@ export default function Register(props) {
   const [wing, setWing] = useState();
   const [flatNo, setFlatNo] = useState();
   const [validationErr, setValidationErr] = useState();
+  const [registerAsAdmin, setRegisterAsAdmin] = useState(false);
+
+  //Reset Pincode, areas and wings to default when societyName is changed
+  useEffect(() => {
+    setPincode("");
+    setArea("");
+    setWing("");
+  }, [societyName]);
+
+  //Reset Areas and wings to default when Pincode is changed
+  useEffect(() => {
+    setArea("");
+    setWing("");
+  }, [pincode]);
+
+  //Reset Wings to default when Area is changed
+  useEffect(() => {
+    setWing("");
+  }, [area]);
 
   const getSocietyNames = () => {
     return props.societies.map((society) => (
@@ -28,7 +46,7 @@ export default function Register(props) {
       const pincodes = props.societies.filter(
         (society) => society.name === societyName
       );
-      return pincodes.map(({ pincode }) => (
+      return pincodes.map(({ pincode }, idx) => (
         <option value={pincode}>{pincode}</option>
       ));
     }
@@ -99,6 +117,17 @@ export default function Register(props) {
         className="grid grid-cols-2 grid-rows-5 gap-y-5 px-2 mt-5"
         onSubmit={onFormSubmit}
       >
+        {console.log(registerAsAdmin)}
+        <div className="col-span-2 justify-self-start">
+          <input
+            type="checkbox"
+            name="registerAsAdmin"
+            value={registerAsAdmin}
+            checked={registerAsAdmin}
+            onChange={() => setRegisterAsAdmin((prevVal) => !prevVal)}
+          />
+          <span className="inline-block ml-5">Register As Admin</span>
+        </div>
         <label htmlFor="firstName">First Name</label>
         <input
           className="border-2 rounded-md"
@@ -108,7 +137,6 @@ export default function Register(props) {
           type="text"
           required
         />
-
         <label htmlFor="lastName">Last Name</label>
         <input
           className="border-2 rounded-md"
@@ -118,22 +146,23 @@ export default function Register(props) {
           type="text"
           required
         />
-        <label htmlFor="society">Society</label>
-
-        <select
-          name="society"
-          className="border-2 rounder-md"
-          value={societyName}
-          onChange={(e) => setSocietyName(e.target.value)}
-          required
-        >
-          <option value="" selected>
-            Choose society
-          </option>
-          {getSocietyNames()}
-        </select>
-        {societyName && (
+        {!registerAsAdmin && (
           <>
+            <label htmlFor="society">Society</label>
+
+            <select
+              name="society"
+              className="border-2 rounder-md"
+              value={societyName}
+              onChange={(e) => setSocietyName(e.target.value)}
+              required
+            >
+              <option value="" selected disabled>
+                Choose society
+              </option>
+              {getSocietyNames()}
+            </select>
+
             <label htmlFor="pincode">Pincode</label>
 
             <select
@@ -143,17 +172,13 @@ export default function Register(props) {
               onChange={(e) => setPincode(Number(e.target.value))}
               required
             >
-              <option value="" selected>
+              <option value="" selected disabled>
                 Choose Pincode
               </option>
 
               {getPincodes()}
             </select>
-          </>
-        )}
 
-        {societyName && pincode && (
-          <>
             <label htmlFor="area">Area</label>
 
             <select
@@ -163,17 +188,13 @@ export default function Register(props) {
               onChange={(e) => setArea(e.target.value)}
               required
             >
-              <option value="" selected>
+              <option value="" selected disabled>
                 Choose area
               </option>
 
               {getAreas()}
             </select>
-          </>
-        )}
 
-        {societyName && pincode && area && (
-          <>
             <label htmlFor="wings">Wing</label>
 
             <select
@@ -211,7 +232,6 @@ export default function Register(props) {
           type="email"
           required
         />
-
         <label htmlFor="password">Password</label>
         <input
           className="border-2 rounded-md"
@@ -223,7 +243,6 @@ export default function Register(props) {
           pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
           title="Password must contain minimum of 8 characters with atleast 1 Uppercase letter, 1 lowercase letter, 1 number and a special character"
         />
-
         <label htmlFor="confirmPassword">Confirm Password</label>
         <input
           className="border-2 rounded-md"
@@ -236,7 +255,12 @@ export default function Register(props) {
         {validationErr && (
           <p className="col-span-2 text-red-600 font-bold justify-self-end">{`*${validationErr}`}</p>
         )}
-        <motion.button whileHover={{scale:1.05}} whileTap={{scale:0.95, transition:{type:'spring',stiffness:75}}}
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{
+            scale: 0.95,
+            transition: { type: "spring", stiffness: 75 },
+          }}
           className="mb-5 col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
           type="submit"
         >
