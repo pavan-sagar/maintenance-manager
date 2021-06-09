@@ -80,21 +80,27 @@ export default function Register(props) {
       setValidationErr("Passwords do not match");
     } else {
       try {
-        const response = await axios.post("/add/resident", {
+        const postData = {
           name: `${firstName} ${lastName}`,
           email,
           password,
-          societyName,
-          pincode,
-          area,
-          wing,
-          flatNo,
-          buildingID: `${wing}-${societyName}-${pincode}`,
-          flatID: `${flatNo}-${wing}-${societyName}-${pincode}`,
-        });
+          isAdmin: registerAsAdmin,
+        };
+
+        if (!registerAsAdmin) {
+          postData.societyName = societyName;
+          postData.pincode = pincode;
+          postData.area = area;
+          postData.wing = wing;
+          postData.flatNo = flatNo;
+          postData.buildingID = buildingID;
+          postData.flatID = flatID;
+        }
+
+        const response = await axios.post("/add/resident", postData);
         if (response.status === 200) {
           alert(
-            "You have successfully registered. Kindly sign in to continue."
+            `${response.data} Kindly sign in to continue.`
           );
           Router.push("/signin");
         }

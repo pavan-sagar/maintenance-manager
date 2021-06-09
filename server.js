@@ -21,18 +21,14 @@ mongoose.connect(process.env.MONGO_URI, {
 app.use(
   cors({
     credentials: true,
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ],
+    origin: true,
   })
 );
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static("public"));
 
-//Users collection schema
+//Residents collection schema
 const residentsSchema = new mongoose.Schema(
   {
     name: {
@@ -41,31 +37,24 @@ const residentsSchema = new mongoose.Schema(
     },
     societyName: {
       type: String,
-      required: true,
     },
     flatNo: {
       type: Number,
-      required: true,
     },
     wing: {
       type: String,
-      required: true,
     },
     area: {
       type: String,
-      required: true,
     },
     pincode: {
       type: Number,
-      required: true,
     },
     flatID: {
       type: String,
-      required: true,
     },
     buildingID: {
       type: String,
-      required: true,
     },
 
     email: {
@@ -76,6 +65,11 @@ const residentsSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      required: true,
+    },
+    managedProperty: mongoose.Schema.Types.Mixed,
   },
   { collection: "residents" }
 );
@@ -255,36 +249,59 @@ app.get("/api/get/building", (req, res, next) => {
 app.post("/api/add/resident", async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-  //Check if the flat no is already registered
-  residents.find(
-    {
-      societyName: req.body.societyName,
-      pincode: req.body.pincode,
-      area: req.body.area,
-      wing: req.body.wing,
-      flatNo: req.body.flatNo,
-    },
-    (err, resident) => {
+  //Check if admin account with given email id already exists
+  if (req.body.isAdmin) {
+    residents.find({ email: req.body.email }, (err, resident) => {
       if (err) next(err);
-
       if (resident.length) {
-        res.status(400).send("This flat is already registered.");
+        res
+          .status(400)
+          .send("An admin account with this email id already exists.");
       } else {
         //New registration
         residents.create(
           { ...req.body, password: hashedPassword },
           (err, resident) => {
             if (resident) {
-              res.status(200).send("Resident created successfully");
+              res.status(200).send("Admin account created successfully.");
             }
-            if (err) {
-              next(err);
-            }
+            if (err) next(err);
           }
         );
       }
-    }
-  );
+    });
+  } else {
+    //Check if the flat no is already registered
+    residents.find(
+      {
+        societyName: req.body.societyName,
+        pincode: req.body.pincode,
+        area: req.body.area,
+        wing: req.body.wing,
+        flatNo: req.body.flatNo,
+      },
+      (err, resident) => {
+        if (err) next(err);
+
+        if (resident.length) {
+          res.status(400).send("This flat is already registered.");
+        } else {
+          //New registration
+          residents.create(
+            { ...req.body, password: hashedPassword },
+            (err, resident) => {
+              if (resident) {
+                res.status(200).send("Flat registered successfully.");
+              }
+              if (err) {
+                next(err);
+              }
+            }
+          );
+        }
+      }
+    );
+  }
 });
 
 //Send payment / Transact
