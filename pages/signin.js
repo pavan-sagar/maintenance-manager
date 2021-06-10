@@ -17,7 +17,11 @@ export function Signin(props) {
       const { data } = await axios.get("/signin");
 
       if (data.message.toLowerCase().includes("already authenticated")) {
-        router.push("/dashboard");
+        if (props.userInfo.isAdmin) {
+          router.push("/admin-dashboard");
+        } else {
+          router.push("/dashboard");
+        }
       }
     })();
   }, []);
@@ -29,7 +33,11 @@ export function Signin(props) {
     }
 
     if (props.userId) {
-      router.push("/dashboard");
+      if (props.userInfo.isAdmin) {
+        router.push("/admin-dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [props.authErr, props.userId]);
 
@@ -99,6 +107,7 @@ const mapStateToProps = (state) => {
   return {
     authErr: state.authenticate.authErr,
     userId: state.authenticate.userId,
+    userInfo: state.authenticate.userInfo,
   };
 };
 
