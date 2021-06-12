@@ -24,6 +24,7 @@
     "express-session": "^1.16.2",
     "formik": "^2.2.8",
     "framer-motion": "^4.1.17",
+    "hamburger-react": "^2.4.1",
     "mongoose": "^5.12.7",
     "next": "latest",
     "passport": "^0.4.0",
