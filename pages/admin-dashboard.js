@@ -1,36 +1,55 @@
-import React from "react";
+import { useState } from "react";
 import { connect } from "react-redux";
+import Dashboard from "../components/Admin/Dashboard";
+import CreateBuilding from "../components/Admin/CreateBuilding";
 import { SliderMenu } from "../components/Admin/SliderMenu";
 
 function adminDashboard(props) {
+  const [activePage, setActivePage] = useState("dashboard");
   const items = [
     {
       name: "Go to Dashboard",
-      action: () => console.log("Go to Dashboard clicked"),
+      action: () => setActivePage("dashboard"),
     },
     {
       name: "Create Building",
-      action: () => console.log("Create building clicked"),
+      action: () => setActivePage("create-building"),
     },
     {
       name: "Create Society",
-      action: () => console.log("Create society clicked"),
+      action: () => setActivePage("create-society"),
     },
     {
       name: "Show Residents details",
-      action: () => console.log("Show Residents clicked"),
+      action: () => setActivePage("show-residents-details"),
     },
     {
       name: "Show Defaulters",
-      action: () => console.log("Show Defaulters clicked"),
+      action: () => setActivePage("show-defaulters"),
     },
   ];
+
+  const renderActivePage = () => {
+    switch (activePage) {
+      case "dashboard":
+        return <Dashboard />;
+      case "create-building":
+        return <CreateBuilding />;
+      default:
+        return <Dashboard />;
+    }
+  };
   return (
-    <div className="mt-5 mb-">
+    <div className="mt-5 mb-3">
       {(props.userInfo.isAdmin && (
-        <div>Welcome Admin {props.userInfo.name}</div>
+        <span>Welcome Admin {props.userInfo.name}</span>
       )) || <p>Access to this section is restricted to Admins only.</p>}
-      <SliderMenu items={items} />
+      <div className="w-full grid grid-cols-2 items-start justify-start">
+        <SliderMenu items={items} />
+        <div className="items-start w-max inline-block">
+          {renderActivePage()}
+        </div>
+      </div>
     </div>
   );
 }
