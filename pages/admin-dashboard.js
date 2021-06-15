@@ -3,6 +3,7 @@ import { connect } from "react-redux";
 import Dashboard from "../components/Admin/Dashboard";
 import CreateBuilding from "../components/Admin/CreateBuilding";
 import { SliderMenu } from "../components/Admin/SliderMenu";
+import CreateSociety from "../components/Admin/CreateSociety";
 
 function adminDashboard(props) {
   const [activePage, setActivePage] = useState("dashboard");
@@ -35,6 +36,8 @@ function adminDashboard(props) {
         return <Dashboard />;
       case "create-building":
         return <CreateBuilding />;
+      case "create-society":
+        return <CreateSociety />;
       default:
         return <Dashboard />;
     }
@@ -44,9 +47,10 @@ function adminDashboard(props) {
       {(props.userInfo.isAdmin && (
         <span>Welcome Admin {props.userInfo.name}</span>
       )) || <p>Access to this section is restricted to Admins only.</p>}
-      <div className="w-full grid grid-cols-2 items-start justify-start">
-        <SliderMenu items={items} />
-        <div className="items-start w-max inline-block">
+      <div className="w-full grid grid-cols-3 items-start justify-start">
+        <SliderMenu items={items} className="col-span-1"/>
+        <div className="col-span-2">
+
           {renderActivePage()}
         </div>
       </div>

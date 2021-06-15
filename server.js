@@ -95,6 +95,8 @@ const societiesSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  societyID: String,
+  area: String,
 });
 
 //Transactions Schema
@@ -229,10 +231,31 @@ function checkNotAuthenticated(req, res, next) {
 
 //GET societies
 app.get("/api/get/societies", (req, res) => {
-  societies.find(null, "name wings area pincode", (err, societies) => {
-    if (err) res.send(err);
-    res.send(societies);
-  });
+  //To verify if a society with given values already exists
+  if (req.query) {
+    // console.log(req.query);
+    const { name, area, pincode } = req.query;
+    societies.find({ name, area, pincode }, (err, society) => {
+      if (err) next(err);
+      console.log(society);
+      if (society.length) {
+        res.send("Society already exists.");
+      } else {
+        societies.create(req.query, (err, society) => {
+          if (err) next(err);
+          if (society) {
+            res.status(200).send("Society created successfully !");
+          }
+        });
+      }
+    });
+  } else {
+    societies.find(null, "name wings area pincode", (err, societies) => {
+      if (err) res.send(err);
+      res.send(societies);
+    });
+    ß;
+  }
 });
 
 //GET building

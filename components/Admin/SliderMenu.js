@@ -22,7 +22,7 @@ export const SliderMenu = ({ items }) => {
                 setOpen((prevState) => !prevState);
               }}
             >
-              <p class="flex flex-col items-center mt-12">
+              <p class="flex flex-col items-center mt-12 bg-white">
                 {items.map((item) => (
                   <p
                     className="rounded-lg text-center w-[90%] p-2 hover:bg-blue-100"
