@@ -24,11 +24,11 @@ function CreateSociety() {
           pincode,
           societyID: `${name}-${pincode}`,
           adminEmail,
+          createSociety: true,
         },
       }
     );
 
-    console.log(data);
     if (data.includes("already exists")) {
       setError(data);
       setSubmitted(false);

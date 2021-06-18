@@ -229,15 +229,13 @@ function checkNotAuthenticated(req, res, next) {
   return next();
 }
 
-//GET societies
+//GET all societies and CREATE societies
 app.get("/api/get/societies", (req, res) => {
   //To verify if a society with given values already exists
-  if (req.query) {
-    // console.log(req.query);
-    const { name, area, pincode } = req.query;
-    societies.find({ name, area, pincode }, (err, society) => {
+  if (req.query.createSociety) {
+    const { name, pincode } = req.query;
+    societies.find({ name, pincode }, (err, society) => {
       if (err) next(err);
-      console.log(society);
       if (society.length) {
         res.send("Society already exists.");
       } else {
@@ -250,12 +248,34 @@ app.get("/api/get/societies", (req, res) => {
       }
     });
   } else {
-    societies.find(null, "name wings area pincode", (err, societies) => {
-      if (err) res.send(err);
-      res.send(societies);
-    });
-    ß;
+    societies.find(
+      null,
+      "name wings area pincode adminEmail",
+      (err, societies) => {
+        if (err) res.send(err);
+        res.send(societies);
+      }
+    );
   }
+});
+
+//UPDATE society
+app.post("/api/update/society", (req, res) => {
+  societies.findOneAndUpdate(
+    { societyID: req.body.societyID },
+    {
+      $push: {
+        wings: {
+          $each: req.body.wingsArr,
+          $sort: 1,
+        },
+      },
+    },
+    (err, output) => {
+      if (err) next(err);
+      res.status(200).send("Society Updated Successfully.");
+    }
+  );
 });
 
 //GET building
