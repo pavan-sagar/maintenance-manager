@@ -1,4 +1,5 @@
 import "tailwindcss/tailwind.css";
+import "../globalStyle.css";
 import { persistStore } from "redux-persist";
 import { PersistGate } from "redux-persist/lib/integration/react";
 import { Provider } from "react-redux";

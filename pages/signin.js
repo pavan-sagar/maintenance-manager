@@ -85,7 +85,7 @@ export function Signin(props) {
               transition: { type: "spring", stiffness: 75 },
             }}
             type="submit"
-            className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+            className="col-span-2 bg-blue-600 md mt-[1rem] text-white self-end hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus:border-blue-500"
           >
             Submit
           </motion.button>

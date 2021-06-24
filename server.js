@@ -22,6 +22,7 @@ app.use(
   cors({
     credentials: true,
     origin: true,
+    methods: ["GET", "POST", "PATCH", "DELETE"],
   })
 );
 app.use(express.urlencoded({ extended: false }));
@@ -345,6 +346,28 @@ app.post("/api/add/resident", async (req, res, next) => {
       }
     );
   }
+});
+
+//UPDATE resident
+app.patch("/api/update/resident", (req, res, next) => {
+  const { flatID, email } = req.body;
+  //Check if a flat is already registered by another resident.
+  residents.findOne({ flatID }, (err, output) => {
+    if (err) next(err);
+
+    if (output) {
+      res
+        .status(422)
+        .send("This flat is already registered.");
+    } else {
+      residents.updateOne({ email }, { ...req.body }, (err, output) => {
+        if (err) next(err);
+        if (output.nModified) {
+          res.send("Flat registered successfully.");
+        }
+      });
+    }
+  });
 });
 
 //Send payment / Transact

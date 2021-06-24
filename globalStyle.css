@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  input {
+    @apply border-2 rounded-md w-full focus:outline-none focus:ring 
+  }
+}

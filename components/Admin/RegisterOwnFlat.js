@@ -1,12 +1,17 @@
 import { capitalize } from "../../utilities";
 import { useState, useEffect } from "react";
 import { axios } from "../../config";
+import ToastMessage from "../lib/ToastMessage";
+import { useSelector } from "react-redux";
 
 function RegisterOwnFlat() {
   const [societies, setSocieties] = useState([]);
   const [selectedSociety, setSelectedSociety] = useState("");
-  const [buildings, setBuildings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [registeredSuccess, setRegisteredSuccess] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState("");
+  const [submitErr, setSubmitErr] = useState("");
+  const email = useSelector((state) => state.authenticate.userId);
 
   //Fetch all societies on intial render
   useEffect(async () => {
@@ -14,6 +19,7 @@ function RegisterOwnFlat() {
 
     if (status == 200) {
       setSocieties(data);
+      setIsLoading(false);
     } else {
       alert("An error occured. Please try again.");
     }
@@ -44,43 +50,108 @@ function RegisterOwnFlat() {
       ?.wings.map((wing) => <option value={wing}>{wing}</option>);
   };
 
-  return (
-    <div className="border-2 inline-block p-2">
-      You can enroll as a resident by registering your flat.
-      <form className="mt-5 grid grid-cols-2">
-        <label htmlFor="choose-society">Society</label>
-        <select
-          name="society"
-          id="choose-society"
-          value={selectedSociety}
-          onChange={(e) => setSelectedSociety(e.target.value)}
-        >
-          <option value="" disabled>
-            Choose Society
-          </option>
-          {renderSocieties()}
-        </select>
-        <label htmlFor="choose-building">Building</label>
-        <select
-          name="building"
-          id="choose-building"
-          value={selectedBuilding}
-          onChange={(e) => setSelectedBuilding(e.target.value)}
-        >
-          <option value="" disabled>
-            Choose Building
-          </option>
+  const registerFlat = async (e) => {
+    e.preventDefault();
 
-          {renderBuildings()}
-        </select>
-        <button
-          className="mt-5 col-span-2 w-full bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
-          type="submit"
-        >
-          Register flat
-        </button>
-      </form>
-    </div>
+    const societyName = selectedSociety.split("-")[0];
+    const wing = selectedBuilding;
+    const flatNo = Number(e.target.flatNo.value);
+    const pincode = Number(selectedSociety.split("-")[1]);
+    const societyID = selectedSociety;
+    const buildingID = selectedBuilding + "-" + selectedSociety;
+    const flatID = flatNo + "-" + buildingID;
+
+    try {
+      const { data, status } = await axios.patch("update/resident", {
+        societyName,
+        wing,
+        flatNo,
+        pincode,
+        societyID,
+        flatID,
+        email,
+        buildingID,
+      });
+
+      if (status == 200) {
+        setRegisteredSuccess(true);
+      }
+    } catch (e) {
+      setRegisteredSuccess(false);
+
+      //Flat was already registered before.
+      if (e.response.status == 422) {
+        setSubmitErr(e.response.data);
+      } else {
+        alert("An error has occured. Please try again");
+      }
+    }
+  };
+
+  return (
+    (!isLoading && (
+      <div className="inline-block">
+        <div className="border-2 rounder-md shadow-md inline-block p-2">
+          <span className="font-normal italic">
+            You can enroll as a resident by registering your flat.
+          </span>
+          <form
+            className="mt-5 grid grid-cols-2 gap-y-3"
+            method="POST"
+            onSubmit={registerFlat}
+          >
+            <label htmlFor="choose-society">Society</label>
+            <select
+              name="society"
+              id="choose-society"
+              value={selectedSociety}
+              onChange={(e) => setSelectedSociety(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Choose Society
+              </option>
+              {renderSocieties()}
+            </select>
+            <label htmlFor="choose-building">Building</label>
+            <select
+              name="building"
+              id="choose-building"
+              value={selectedBuilding}
+              onChange={(e) => setSelectedBuilding(e.target.value)}
+              required
+            >
+              <option value="" disabled>
+                Choose Building
+              </option>
+
+              {renderBuildings()}
+            </select>
+            <label htmlFor="flat-no">Flat No.</label>
+            <input type="number" name="flatNo" id="flat-no" required />
+            <div className="col-span-2">
+              <button
+                className="mt-5  w-full bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+                type="submit"
+              >
+                Register flat
+              </button>
+              {submitErr && (
+                <span className="text-red-500 font-medium mt-5">
+                  {submitErr}
+                </span>
+              )}
+            </div>
+          </form>
+        </div>
+        {registeredSuccess && (
+          <ToastMessage duration={3} success={true}>
+            Flat registered as a resident successfully.
+          </ToastMessage>
+        )}
+      </div>
+    )) ||
+    "Loading..."
   );
 }
 
