@@ -16,7 +16,7 @@ const Home = (props) => {
                 scale: 0.95,
                 transition: { type: "spring", stiffness: 75 },
               }}
-              className="bg-blue-600 text-white hover:bg-[#3f83f8] px-8 py-2 mr-5 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+              className="px-8 py-2 mr-5"
             >
               Sign In
             </motion.button>
@@ -28,7 +28,7 @@ const Home = (props) => {
                 scale: 0.95,
                 transition: { type: "spring", stiffness: 75 },
               }}
-              className="bg-blue-600 text-white hover:bg-[#3f83f8] px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+              className="px-8 py-2"
             >
               Create Account
             </motion.button>
@@ -42,7 +42,7 @@ const Home = (props) => {
               scale: 0.95,
               transition: { type: "spring", stiffness: 75 },
             }}
-            className="bg-blue-600 text-white hover:bg-[#3f83f8] mt-10 px-8 py-2 rounded-md focus:outline-none focus:ring focus-border-blue-500"
+            className="mt-10 px-8 py-2"
           >
             Go to Dashboard
           </motion.button>

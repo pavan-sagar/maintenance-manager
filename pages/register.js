@@ -267,7 +267,7 @@ export default function Register(props) {
             scale: 0.95,
             transition: { type: "spring", stiffness: 75 },
           }}
-          className="mb-5 col-span-2 bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+          className="mb-5 col-span-2"
           type="submit"
         >
           Submit

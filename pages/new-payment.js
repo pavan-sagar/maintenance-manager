@@ -206,7 +206,7 @@ function new_payment(props) {
                   </span>
 
                   <button
-                    className="col-span-2 w-full justify-self-center bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+                    className="col-span-2 justify-self-center"
                     type="submit"
                   >
                     Pay
@@ -254,7 +254,7 @@ function new_payment(props) {
                   <span>{(toMonth - fromMonth + 1) * maintenancePerMonth}</span>
                   <div className="mt-3 col-span-2">
                     <button
-                      className="m-3 w-[40%] bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+                      className="m-3 w-[40%]"
                       onClick={() =>
                         submitTransaction({
                           amount:
@@ -268,7 +268,7 @@ function new_payment(props) {
                     </button>
                     <button
                       onClick={() => setShowModal(false)}
-                      className="m-3 w-[40%] bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+                      className="m-3 w-[40%] "
                     >
                       Cancel
                     </button>

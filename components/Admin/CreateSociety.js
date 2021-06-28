@@ -68,7 +68,7 @@ function CreateSociety() {
             className="border-2 rounded-md w-full"
           />
           <button
-            className="mt-5 col-span-2 w-full bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus-border-blue-600"
+            className="mt-5 col-span-2"
             type="submit"
           >
             Create Society
