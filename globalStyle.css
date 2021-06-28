@@ -10,4 +10,8 @@
   button {
     @apply w-full bg-blue-600 text-white hover:bg-[#3f83f8] rounded-md py-3 inline-block focus:outline-none focus:ring focus:border-blue-600
   }
+
+  .outer-border{
+    @apply border-2 rounded-md shadow-md
+  }
 }

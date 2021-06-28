@@ -5,6 +5,8 @@ import CreateBuilding from "../components/Admin/CreateBuilding";
 import { SliderMenu } from "../components/Admin/SliderMenu";
 import CreateSociety from "../components/Admin/CreateSociety";
 import RegisterOwnFlat from "../components/Admin/RegisterOwnFlat";
+import ManageBuilding from "../components/Admin/ManageBuilding";
+
 
 function adminDashboard(props) {
   const [activePage, setActivePage] = useState("dashboard");
@@ -33,6 +35,10 @@ function adminDashboard(props) {
       name: "Register as Resident",
       action: () => setActivePage("register-as-resident"),
     },
+    {
+      name: "Manage Building",
+      action: () => setActivePage("manage-building"),
+    },
   ];
 
   const renderActivePage = () => {
@@ -45,6 +51,8 @@ function adminDashboard(props) {
         return <CreateSociety />;
       case "register-as-resident":
         return <RegisterOwnFlat />
+      case "manage-building":
+        return <ManageBuilding />
       default:
         return <Dashboard />;
     }

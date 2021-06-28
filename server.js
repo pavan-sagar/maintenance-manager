@@ -281,9 +281,8 @@ app.post("/api/update/society", (req, res) => {
 
 //GET building
 app.get("/api/get/building", (req, res, next) => {
-  const { buildingID } = req.query;
 
-  buildings.findOne({ buildingID }, (err, output) => {
+  buildings.findOne(req.query, (err, output) => {
     if (err) next(err);
     res.status(200).send(output);
   });
