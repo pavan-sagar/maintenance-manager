@@ -281,11 +281,24 @@ app.post("/api/update/society", (req, res) => {
 
 //GET building
 app.get("/api/get/building", (req, res, next) => {
-
   buildings.findOne(req.query, (err, output) => {
     if (err) next(err);
     res.status(200).send(output);
   });
+});
+
+//UPDATE building
+app.post("/api/update/building", (req, res, next) => {
+  buildings.updateOne(
+    { buildingID: req.body.buildingID },
+    req.body,
+    (err, output) => {
+      if (err) next(err);
+      if (output.nModified) {
+        res.send("Building updated successfully.");
+      }
+    }
+  );
 });
 
 //ADD resident / New resident registration
@@ -355,9 +368,7 @@ app.patch("/api/update/resident", (req, res, next) => {
     if (err) next(err);
 
     if (output) {
-      res
-        .status(422)
-        .send("This flat is already registered.");
+      res.status(422).send("This flat is already registered.");
     } else {
       residents.updateOne({ email }, { ...req.body }, (err, output) => {
         if (err) next(err);
