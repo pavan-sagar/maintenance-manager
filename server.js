@@ -151,6 +151,7 @@ const buildingsSchema = new mongoose.Schema({
   maintenancePerMonth: Number,
   collectAfterHowManyMonths: Number,
   collectionOrder: String,
+  managerEmail: String,
   dueDay: Number,
   mainStartPeriod: Number,
   mainStartYear: Number,
@@ -288,15 +289,16 @@ app.get("/api/get/building", (req, res, next) => {
 });
 
 //UPDATE building
-app.post("/api/update/building", (req, res, next) => {
+debugger;
+app.patch("/api/update/building", (req, res, next) => {
   buildings.updateOne(
     { buildingID: req.body.buildingID },
     req.body,
     (err, output) => {
       if (err) next(err);
-      if (output.nModified) {
-        res.send("Building updated successfully.");
-      }
+      // if (output.nModified || !req.body.managerEmail) {
+        res.status(200).send("Building updated successfully.");
+      // }
     }
   );
 });
