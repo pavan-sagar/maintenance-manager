@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { axios } from "../../config";
+import { capitalize } from "../../utilities";
 import ToastMessage from "../lib/ToastMessage";
 
 function ManageBuilding() {
@@ -9,6 +10,8 @@ function ManageBuilding() {
   const [isLoading, setIsLoading] = useState(true);
   const [showToastMessage, setShowToastMessage] = useState(false);
   const [buildingData, setBuildingData] = useState({});
+  const [societies, setSocieties] = useState([]);
+  const [selectedSociety, setSelectedSociety] = useState("");
 
   useEffect(async () => {
     try {
@@ -21,6 +24,18 @@ function ManageBuilding() {
       if (data) {
         setIsManagerOfBuilding(true);
         setBuildingData(data);
+      } else {
+        //Get list of societies so that a new building can be chosen to manage.
+
+        try {
+          const { data, status } = await axios.get("/get/societies");
+          if (status === 200) {
+            console.log(data);
+            setSocieties(data);
+          }
+        } catch (e) {
+          console.log("An error occured.");
+        }
       }
     } catch (error) {}
 
@@ -178,12 +193,42 @@ function ManageBuilding() {
           (Currently, no building is managed by you)
         </span>
 
-        <form>
-          
+        <form className="grid grid-cols-2 gap-y-2">
+          <label htmlFor="society">Society</label>
+          <select
+            id="society"
+            name="society"
+            defaultValue="Choose Society"
+            onChange={(e) => setSelectedSociety(e.target.value)}
+          >
+            <option value="Choose Society" disabled>
+              Choose Society
+            </option>
+            {societies.map((society) => (
+              <option value={`${society.name}-${society.pincode}`}>
+                {capitalize(`${society.name}-${society.pincode}`)}
+              </option>
+            ))}
+          </select>
+          <label htmlFor="building">Building</label>
+
+          <select id="building">
+            {societies
+              .find((society) => {
+                return (
+                  society.name === selectedSociety.split("-")[0] &&
+                  society.pincode == selectedSociety.split("-")[1]
+                );
+              })
+              ?.wings.map((wing) => (
+                <option value={wing}>{capitalize(wing)}</option>
+              ))}
+          </select>
         </form>
       </div>
     );
   };
+
   return (
     (!isLoading && (
       <div className="outer-border inline-block p-5">
