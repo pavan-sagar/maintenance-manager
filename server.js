@@ -294,10 +294,11 @@ app.patch("/api/update/building", (req, res, next) => {
   buildings.updateOne(
     { buildingID: req.body.buildingID },
     req.body,
+    { upsert: true, new: true },
     (err, output) => {
       if (err) next(err);
       // if (output.nModified || !req.body.managerEmail) {
-        res.status(200).send("Building updated successfully.");
+      res.status(200).send("Building updated successfully.");
       // }
     }
   );

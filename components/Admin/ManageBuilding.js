@@ -30,7 +30,6 @@ function ManageBuilding() {
         try {
           const { data, status } = await axios.get("/get/societies");
           if (status === 200) {
-            console.log(data);
             setSocieties(data);
           }
         } catch (e) {
@@ -193,16 +192,20 @@ function ManageBuilding() {
           (Currently, no building is managed by you)
         </span>
 
-        <form className="grid grid-cols-2 gap-y-2">
+        <form
+          className="grid grid-cols-2 gap-y-2"
+          onSubmit={submitManageNewBuilding}
+        >
           <label htmlFor="society">Society</label>
           <select
             id="society"
             name="society"
-            defaultValue="Choose Society"
+            defaultValue=""
             onChange={(e) => setSelectedSociety(e.target.value)}
+            required
           >
-            <option value="Choose Society" disabled>
-              Choose Society
+            <option value="" disabled>
+              Select
             </option>
             {societies.map((society) => (
               <option value={`${society.name}-${society.pincode}`}>
@@ -212,7 +215,15 @@ function ManageBuilding() {
           </select>
           <label htmlFor="building">Building</label>
 
-          <select id="building">
+          <select
+            id="building"
+            defaultValue=""
+            className="justify-self-start"
+            required
+          >
+            <option value="" disabled>
+              Select
+            </option>
             {societies
               .find((society) => {
                 return (
@@ -224,11 +235,29 @@ function ManageBuilding() {
                 <option value={wing}>{capitalize(wing)}</option>
               ))}
           </select>
+          <button className="col-span-2" type="submit">
+            Manage New Building
+          </button>
         </form>
       </div>
     );
   };
 
+  const submitManageNewBuilding = async (e) => {
+    e.preventDefault();
+    const societyID = e.target.society.value;
+    const building = e.target.building.value.toLowerCase();
+    const buildingID = `${building}-${societyID}`;
+
+    try {
+      const { data, status } = await axios.patch("update/building", {
+        buildingID,
+        managerEmail: adminEmail,
+      });
+    } catch (e) {
+      console.log("An error occured.");
+    }
+  };
   return (
     (!isLoading && (
       <div className="outer-border inline-block p-5">
