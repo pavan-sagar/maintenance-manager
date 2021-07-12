@@ -3,6 +3,12 @@ import { useSelector } from "react-redux";
 import { axios } from "../../config";
 import { capitalize } from "../../utilities";
 import ToastMessage from "../lib/ToastMessage";
+import Dialog from "@material-ui/core/Dialog";
+import Button from "@material-ui/core/Button";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 function ManageBuilding() {
   const adminEmail = useSelector((state) => state.authenticate.userId);
@@ -10,8 +16,12 @@ function ManageBuilding() {
   const [isLoading, setIsLoading] = useState(true);
   const [showToastMessage, setShowToastMessage] = useState(false);
   const [buildingData, setBuildingData] = useState({});
+  const [managedSociety, setManagedSociety] = useState("");
+  const [managedBuilding, setManagedBuilding] = useState("");
   const [societies, setSocieties] = useState([]);
   const [selectedSociety, setSelectedSociety] = useState("");
+  const [toastMessage, setToastMessage] = useState("");
+  const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
 
   useEffect(async () => {
     try {
@@ -24,6 +34,14 @@ function ManageBuilding() {
       if (data) {
         setIsManagerOfBuilding(true);
         setBuildingData(data);
+        setManagedSociety(
+          capitalize(
+            data.buildingID.split("-")[1] +
+              " - " +
+              data.buildingID.split("-")[2]
+          )
+        );
+        setManagedBuilding(capitalize(data.buildingID.split("-")[0]));
       } else {
         //Get list of societies so that a new building can be chosen to manage.
 
@@ -51,6 +69,10 @@ function ManageBuilding() {
           <span className="col-span-2 italic font-medium text-lg text-center mb-5">
             Edit Building Data
           </span>
+          <label htmlFor="society">Society</label>
+          <input type="text" id="society" value={managedSociety} disabled />
+          <label htmlFor="building">Building</label>
+          <input type="text" id="building" value={managedBuilding} disabled />
           <label htmlFor="chairman">Chairman</label>
           <input
             type="text"
@@ -123,18 +145,46 @@ function ManageBuilding() {
           <button
             type="button"
             className="col-span-2 mt-5 bg-red-600 hover:bg-red-500"
-            onClick={deregisterBuilding}
+            onClick={() => setShowDeregisterDialog(true)}
           >
             Deregister
           </button>
+          <Dialog
+            open={showDeregisterDialog}
+            onClose={() => setShowDeregisterDialog(false)}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Deregister your managed building ?"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                <span>
+                  Are you sure you want to deregister the building{" "}
+                  <i>
+                    <strong>
+                      {managedBuilding}-{managedSociety}
+                    </strong>
+                  </i>{" "}
+                  that is managed by you ?
+                </span>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={deregisterBuilding} color="primary">
+                Confirm
+              </Button>
+              <Button
+                onClick={() => setShowDeregisterDialog(false)}
+                color="primary"
+                autoFocus
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
         </form>
-        {showToastMessage && (
-          <div className="mt-5">
-            <ToastMessage success={true} duration={3}>
-              Building data updated successfully.
-            </ToastMessage>
-          </div>
-        )}
       </div>
     );
   };
@@ -162,6 +212,7 @@ function ManageBuilding() {
       );
       if (status === 200) {
         setShowToastMessage(true);
+        setToastMessage("Building data updated successfully.");
         setTimeout(() => setShowToastMessage(false), 3500);
       }
     } catch (e) {
@@ -169,21 +220,26 @@ function ManageBuilding() {
     }
   };
 
+  //De-link/de-register the building that is being managed currently.
   const deregisterBuilding = async () => {
     try {
       const { status } = await axios.patch("/update/building", {
         buildingID: buildingData.buildingID,
-        managerEmail: "test",
+        managerEmail: "",
       });
 
       if (status === 200) {
-        console.log("Deregistered.");
+        setShowToastMessage(true);
+        setToastMessage("Building de-registered successfully.");
+        setTimeout(() => setShowToastMessage(false), 3500);
       }
     } catch (e) {
       alert("An error occured. Please try again.");
     }
+    setShowDeregisterDialog(false);
   };
 
+  //No building is current being managed. Register new building for management.
   const manageNewBuilding = () => {
     return (
       <div>
@@ -243,6 +299,7 @@ function ManageBuilding() {
     );
   };
 
+  //New building to manage form submission
   const submitManageNewBuilding = async (e) => {
     e.preventDefault();
     const societyID = e.target.society.value;
@@ -254,6 +311,12 @@ function ManageBuilding() {
         buildingID,
         managerEmail: adminEmail,
       });
+
+      if (status === 200) {
+        setShowToastMessage(true);
+        setToastMessage("Building added for management.");
+        setTimeout(() => setShowToastMessage(false), 3500);
+      }
     } catch (e) {
       console.log("An error occured.");
     }
@@ -262,6 +325,13 @@ function ManageBuilding() {
     (!isLoading && (
       <div className="outer-border inline-block p-5">
         {(isManagerOfBuilding && renderBuildingData()) || manageNewBuilding()}
+        {showToastMessage && (
+          <div className="mt-5">
+            <ToastMessage success={true} duration={3}>
+              {toastMessage}
+            </ToastMessage>
+          </div>
+        )}
       </div>
     )) ||
     "Loading..."

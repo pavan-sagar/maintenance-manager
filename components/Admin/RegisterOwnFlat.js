@@ -130,10 +130,7 @@ function RegisterOwnFlat() {
             <label htmlFor="flat-no">Flat No.</label>
             <input type="number" name="flatNo" id="flat-no" required />
             <div className="col-span-2">
-              <button
-                className="mt-5"
-                type="submit"
-              >
+              <button className="mt-5" type="submit">
                 Register flat
               </button>
               {submitErr && (
