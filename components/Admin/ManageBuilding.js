@@ -9,6 +9,30 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import { makeStyles } from "@material-ui/core/styles";
+
+const useStyles = makeStyles({
+  root_confirm: {
+    backgroundColor: "rgba(37, 99, 235)",
+    color: "rgba(255, 255, 255)",
+    borderRadius: "0.375rem",
+    borderOpacity: "1",
+    borderColor: "rgba(37, 99, 235)",
+    "&:hover": {
+      backgroundColor: "rgba(63, 131, 248)",
+    },
+  },
+  root_cancel: {
+    backgroundColor: "rgba(220, 38, 38)",
+    color: "rgba(255, 255, 255)",
+    borderRadius: "0.375rem",
+    borderOpacity: "1",
+    borderColor: "rgba(220, 38, 38)",
+    "&:hover": {
+      backgroundColor: "rgba(248, 113, 113)",
+    },
+  },
+});
 
 function ManageBuilding() {
   const adminEmail = useSelector((state) => state.authenticate.userId);
@@ -22,6 +46,8 @@ function ManageBuilding() {
   const [selectedSociety, setSelectedSociety] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const [showDeregisterDialog, setShowDeregisterDialog] = useState(false);
+
+  const classes = useStyles();
 
   useEffect(async () => {
     try {
@@ -172,12 +198,15 @@ function ManageBuilding() {
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button onClick={deregisterBuilding} color="primary">
+              <Button
+                className={classes.root_confirm}
+                onClick={deregisterBuilding}
+              >
                 Confirm
               </Button>
               <Button
+                className={classes.root_cancel}
                 onClick={() => setShowDeregisterDialog(false)}
-                color="primary"
                 autoFocus
               >
                 Cancel
