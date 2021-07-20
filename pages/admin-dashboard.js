@@ -6,7 +6,7 @@ import { SliderMenu } from "../components/Admin/SliderMenu";
 import CreateSociety from "../components/Admin/CreateSociety";
 import RegisterOwnFlat from "../components/Admin/RegisterOwnFlat";
 import ManageBuilding from "../components/Admin/ManageBuilding";
-
+import ResidentTransactions from "../components/Admin/ResidentTransactions";
 
 function adminDashboard(props) {
   const [activePage, setActivePage] = useState("dashboard");
@@ -39,6 +39,10 @@ function adminDashboard(props) {
       name: "Manage Building",
       action: () => setActivePage("manage-building"),
     },
+    {
+      name: "Resident Transactions",
+      action: () => setActivePage("resident-transactions"),
+    },
   ];
 
   const renderActivePage = () => {
@@ -50,9 +54,11 @@ function adminDashboard(props) {
       case "create-society":
         return <CreateSociety />;
       case "register-as-resident":
-        return <RegisterOwnFlat />
+        return <RegisterOwnFlat />;
       case "manage-building":
-        return <ManageBuilding />
+        return <ManageBuilding />;
+      case "resident-transactions":
+        return <ResidentTransactions />;
       default:
         return <Dashboard />;
     }
@@ -60,15 +66,14 @@ function adminDashboard(props) {
   return (
     <div className="mt-5 mb-3">
       {(props.userInfo.isAdmin && (
-        <span>Welcome Admin {props.userInfo.name}</span>
+        <>
+          <span>Welcome Admin {props.userInfo.name}</span>
+          <div className="w-full grid grid-cols-3 items-start justify-start">
+            <SliderMenu items={items} className="col-span-1" />
+            <div className="col-span-2">{renderActivePage()}</div>
+          </div>
+        </>
       )) || <p>Access to this section is restricted to Admins only.</p>}
-      <div className="w-full grid grid-cols-3 items-start justify-start">
-        <SliderMenu items={items} className="col-span-1"/>
-        <div className="col-span-2">
-
-          {renderActivePage()}
-        </div>
-      </div>
     </div>
   );
 }
