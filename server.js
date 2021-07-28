@@ -408,6 +408,17 @@ app.get("/api/get/transactions", (req, res, next) => {
   });
 });
 
+// GET all transactions for a particular building
+app.get("/api/get/building_transactions", (req, res, next) => {
+  transactions.find(
+    { flatID: new RegExp(req.query.buildingID, "i") },
+    (err, output) => {
+      if (err) next(err);
+      res.send(output);
+    }
+  );
+});
+
 //GET last payment info
 app.get("/api/get/transactions/last", (req, res, next) => {
   transactions.findOne(
