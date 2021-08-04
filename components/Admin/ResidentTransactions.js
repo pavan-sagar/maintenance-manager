@@ -30,7 +30,6 @@ function ResidentTransactions() {
   const [isManagerOfBuilding, setIsManagerOfBuilding] = useState(false);
   const [building, setBuilding] = useState("");
   const [society, setSociety] = useState("");
-  const [buildingTransactions, setBuildingTransactions] = useState([]);
 
   const classes = useStyles();
 

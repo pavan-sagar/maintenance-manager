@@ -7,6 +7,8 @@ import CreateSociety from "../components/Admin/CreateSociety";
 import RegisterOwnFlat from "../components/Admin/RegisterOwnFlat";
 import ManageBuilding from "../components/Admin/ManageBuilding";
 import ResidentTransactions from "../components/Admin/ResidentTransactions";
+import ResidentsDetails from "../components/Admin/ResidentsDetails";
+
 
 function adminDashboard(props) {
   const [activePage, setActivePage] = useState("dashboard");
@@ -24,8 +26,8 @@ function adminDashboard(props) {
       action: () => setActivePage("create-society"),
     },
     {
-      name: "Show Residents details",
-      action: () => setActivePage("show-residents-details"),
+      name: "Residents details",
+      action: () => setActivePage("residents-details"),
     },
     {
       name: "Show Defaulters",
@@ -59,6 +61,8 @@ function adminDashboard(props) {
         return <ManageBuilding />;
       case "resident-transactions":
         return <ResidentTransactions />;
+      case "residents-details":
+        return <ResidentsDetails />;
       default:
         return <Dashboard />;
     }

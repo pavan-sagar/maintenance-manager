@@ -304,6 +304,18 @@ app.patch("/api/update/building", (req, res, next) => {
   );
 });
 
+//GET all residents details
+app.get("/api/get/residents", (req, res, next) => {
+  const { buildingID } = req.query;
+  residents.find({ buildingID }, (err, residents) => {
+    if (err) next(err);
+    if (residents.length) {
+      res.send(residents);
+    } else {
+      res.status(404).send("No residents found for the specified building.");
+    }
+  });
+});
 //ADD resident / New resident registration
 app.post("/api/add/resident", async (req, res, next) => {
   const hashedPassword = await bcrypt.hash(req.body.password, 10);
