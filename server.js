@@ -461,6 +461,17 @@ app.get("/api/get/dues", (req, res, next) => {
   );
 });
 
+//GET dues based on buildingID
+app.get("/api/get/buildingid-dues", (req, res, next) => {
+  dues.find(
+    { flatID: { $regex: req.query.buildingID, $options: "i" } },
+    (err, output) => {
+      if (err) next(err);
+      res.send(output);
+    }
+  );
+});
+
 //Calculate dues of particular flat
 app.get("/api/calculate/dues/", (req, res, next) => {
   const flatID = req.query.flatID;

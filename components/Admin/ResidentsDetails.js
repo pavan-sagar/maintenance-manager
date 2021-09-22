@@ -28,7 +28,6 @@ const useStyles = makeStyles({
 function ResidentsDetails() {
   const adminEmail = useSelector((state) => state.authenticate.userId);
   const [isLoading, setIsLoading] = useState(true);
-  const [isManagerOfBuilding, setIsManagerOfBuilding] = useState(false);
   const [building, setBuilding] = useState("");
   const [society, setSociety] = useState("");
 
@@ -43,7 +42,6 @@ function ResidentsDetails() {
       });
 
       if (data) {
-        setIsManagerOfBuilding(true);
         setBuilding(capitalize(data.buildingID.split("-")[0]));
         setSociety(capitalize(data.buildingID.split("-")[1]));
       }
@@ -56,7 +54,6 @@ function ResidentsDetails() {
       });
 
       if (response.data) {
-        console.log(response.data);
         response.data.map((resident, idx) => {
           rows.push({
             id: idx + 1,

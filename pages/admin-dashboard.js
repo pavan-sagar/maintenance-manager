@@ -8,7 +8,7 @@ import RegisterOwnFlat from "../components/Admin/RegisterOwnFlat";
 import ManageBuilding from "../components/Admin/ManageBuilding";
 import ResidentTransactions from "../components/Admin/ResidentTransactions";
 import ResidentsDetails from "../components/Admin/ResidentsDetails";
-
+import ShowDefaulters from "../components/Admin/ShowDefaulters";
 
 function adminDashboard(props) {
   const [activePage, setActivePage] = useState("dashboard");
@@ -63,6 +63,8 @@ function adminDashboard(props) {
         return <ResidentTransactions />;
       case "residents-details":
         return <ResidentsDetails />;
+      case "show-defaulters":
+        return <ShowDefaulters />;
       default:
         return <Dashboard />;
     }
