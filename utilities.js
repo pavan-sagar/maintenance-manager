@@ -14,6 +14,8 @@ export const getMonthName = (monthNumber, characters = 0) => {
     "December",
   ];
 
+  //comment here
+
   return characters <= 0
     ? monthNames[monthNumber]
     : monthNames[monthNumber].substr(0, characters);
